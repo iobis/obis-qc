@@ -1,3 +1,5 @@
+![badge](https://github.com/iobis/obis-qc/workflows/Python%20package/badge.svg)
+
 # obis-qc
 ### Running tests
 
