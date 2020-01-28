@@ -1,4 +1,3 @@
-import pyxylookup
 from . import util
 import logging
 logger = logging.getLogger(__name__)
