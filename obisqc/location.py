@@ -103,6 +103,15 @@ def check_xy(result, xy):
             areas.append(area["id"])
     result["annotations"]["areas"] = areas
 
+    # grids
+
+    if "sstemperature" in xy["grids"]:
+        result["annotations"]["sst"] = round(xy["grids"]["sstemperature"], 2)
+    if "sssalinity" in xy["grids"]:
+        result["annotations"]["sss"] = round(xy["grids"]["sssalinity"], 2)
+    if "bathymetry" in xy["grids"]:
+        result["annotations"]["bathymetry"] = round(xy["grids"]["bathymetry"], 2)
+
 
 def check(records, xylookup=False):
     results = [check_record(record) for record in records]

@@ -118,6 +118,15 @@ class TestLocation(unittest.TestCase):
         self.assertTrue(len(results[0]["annotations"]["areas"]) > 0)
         self.assertTrue(len(results[1]["annotations"]["areas"]) == 0)
 
+    def test_grids(self):
+        records = [
+            {"id": 0, "decimalLongitude": 2.1, "decimalLatitude": 51.3}
+        ]
+        results = location.check(records, xylookup=True)
+        self.assertIn("bathymetry", results[0]["annotations"])
+        self.assertIn("sst", results[0]["annotations"])
+        self.assertIn("sss", results[0]["annotations"])
+
 
 if __name__ == "__main__":
     unittest.main()
