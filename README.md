@@ -1,4 +1,4 @@
-![badge](https://github.com/iobis/obis-qc/workflows/tests/badge.svg)
+![tests](https://github.com/iobis/obis-qc/workflows/tests/badge.svg)
 
 # obis-qc
 ### Running tests
