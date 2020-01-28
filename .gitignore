@@ -1,3 +1,5 @@
+htmlcov
+coverage.xml
 build
 dist
 obisqc.egg-info

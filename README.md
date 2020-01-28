@@ -1,4 +1,4 @@
-![badge](https://github.com/iobis/obis-qc/workflows/Python%20package/badge.svg)
+![badge](https://github.com/iobis/obis-qc/workflows/tests/badge.svg)
 
 # obis-qc
 ### Running tests
