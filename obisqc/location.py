@@ -41,6 +41,11 @@ def check_record(record):
         result["flags"].append("no_coord")
         result["dropped"] = True
 
+    if "decimalLongitude" in result["annotations"] and "decimalLatitude" in result["annotations"]:
+        if result["annotations"]["decimalLongitude"] == 0 and result["annotations"]["decimalLatitude"] == 0:
+            result["flags"].append("zero_coord")
+            result["dropped"] = True
+
     # depth
 
     if "minimumDepthInMeters" in record:

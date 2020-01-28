@@ -61,6 +61,15 @@ class TestLocation(unittest.TestCase):
         self.assertIn("no_coord", results[0]["flags"])
         self.assertTrue(results[0]["dropped"])
 
+    def test_zero_coordinates(self):
+        records = [
+            { "id": 0, "decimalLongitude": 0, "decimalLatitude": 0 },
+            { "id": 1, "decimalLongitude": 1, "decimalLatitude": 0 }
+        ]
+        results = location.check(records)
+        self.assertIn("zero_coord", results[0]["flags"])
+        self.assertNotIn("zero_coord", results[1]["flags"])
+
     def test_depth_parsing(self):
         records = [
             { "id": 0, "minimumDepthInMeters": "2", "maximumDepthInMeters": "10" },
