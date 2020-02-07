@@ -1,2 +1,3 @@
 git+git://github.com/iobis/pyxylookup.git
+git+git://github.com/iobis/pyworms.git
 git+git://github.com/pieterprovoost/isodateparser.git

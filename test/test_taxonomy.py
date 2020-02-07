@@ -1,0 +1,124 @@
+import unittest
+from obisqc import taxonomy
+import logging
+
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)-12s %(levelname)-8s %(message)s", datefmt="%H:%M:%S")
+logging.getLogger("urllib3").setLevel(logging.INFO)
+
+
+class TestTaxonomy(unittest.TestCase):
+
+    def test_name_valid(self):
+        records = [
+            { "id": 0, "scientificName": "Abra alba" }
+        ]
+        results = taxonomy.check(records)
+        self.assertTrue(results[0]["annotations"]["aphia"] == 141433)
+        self.assertIsNone(results[0]["annotations"]["unaccepted"])
+        self.assertFalse(results[0]["dropped"])
+        self.assertNotIn("scientificName", results[0]["missing"])
+        self.assertIn("scientificNameID", results[0]["missing"])
+        self.assertTrue(len(results[0]["flags"]) == 0)
+
+    def test_name_synonym(self):
+        records = [
+            { "id": 0, "scientificName": "Orca gladiator" }
+        ]
+        results = taxonomy.check(records)
+        self.assertTrue(results[0]["annotations"]["aphia"] == 137102)
+        self.assertTrue(results[0]["annotations"]["unaccepted"] == 384046)
+        self.assertFalse(results[0]["dropped"])
+        self.assertNotIn("scientificName", results[0]["missing"])
+        self.assertIn("scientificNameID", results[0]["missing"])
+        self.assertTrue(len(results[0]["flags"]) == 0)
+
+    def test_id_valid(self):
+        records = [
+            { "id": 0, "scientificNameID": "urn:lsid:marinespecies.org:taxname:141433" }
+        ]
+        results = taxonomy.check(records)
+        self.assertTrue(results[0]["annotations"]["aphia"] == 141433)
+        self.assertIsNone(results[0]["annotations"]["unaccepted"])
+        self.assertFalse(results[0]["dropped"])
+        self.assertNotIn("scientificNameID", results[0]["missing"])
+        self.assertIn("scientificName", results[0]["missing"])
+        self.assertTrue(len(results[0]["flags"]) == 0)
+
+    def test_id_synonym(self):
+        records = [
+            { "id": 0, "scientificNameID": "urn:lsid:marinespecies.org:taxname:384046" }
+        ]
+        results = taxonomy.check(records)
+        self.assertTrue(results[0]["annotations"]["aphia"] == 137102)
+        self.assertTrue(results[0]["annotations"]["unaccepted"] == 384046)
+        self.assertFalse(results[0]["dropped"])
+        self.assertNotIn("scientificNameID", results[0]["missing"])
+        self.assertIn("scientificName", results[0]["missing"])
+        self.assertTrue(len(results[0]["flags"]) == 0)
+
+    def test_name_invalid(self):
+        records = [
+            {"id": 0, "scientificName": "Bivalve"}
+        ]
+        results = taxonomy.check(records)
+        self.assertIn("scientificNameID", results[0]["missing"])
+        self.assertNotIn("scientificName", results[0]["missing"])
+        self.assertTrue(results[0]["dropped"])
+        self.assertIn("no_match", results[0]["flags"])
+        self.assertIsNone(results[0]["annotations"]["aphia"])
+        self.assertIsNone(results[0]["annotations"]["unaccepted"])
+
+    def test_id_invalid(self):
+        records = [
+            {"id": 0, "scientificNameID": "urn:lsid:itis.gov:itis_tsn:28726"}
+        ]
+        results = taxonomy.check(records)
+        self.assertNotIn("scientificNameID", results[0]["missing"])
+        self.assertIn("scientificName", results[0]["missing"])
+        self.assertTrue(results[0]["dropped"])
+        self.assertIn("no_match", results[0]["flags"])
+        self.assertIn("scientificNameID", results[0]["invalid"])
+        self.assertTrue(len(results[0]["invalid"]) == 1)
+        self.assertIsNone(results[0]["annotations"]["aphia"])
+        self.assertIsNone(results[0]["annotations"]["unaccepted"])
+
+    def test_id_non_existing(self):
+        records = [
+            {"id": 0, "scientificNameID": "urn:lsid:marinespecies.org:taxname:99999999"}
+        ]
+        results = taxonomy.check(records)
+        self.assertNotIn("scientificNameID", results[0]["missing"])
+        self.assertIn("scientificName", results[0]["missing"])
+        self.assertTrue(results[0]["dropped"])
+        self.assertIn("no_match", results[0]["flags"])
+        self.assertIn("scientificNameID", results[0]["invalid"])
+        self.assertIsNone(results[0]["annotations"]["aphia"])
+        self.assertIsNone(results[0]["annotations"]["unaccepted"])
+
+    def test_name_not_marine(self):
+        records = [
+            {"id": 0, "scientificName": "Ardea cinerea"}
+        ]
+        results = taxonomy.check(records)
+        self.assertIn("scientificNameID", results[0]["missing"])
+        self.assertNotIn("scientificName", results[0]["missing"])
+        self.assertTrue(results[0]["dropped"])
+        self.assertIn("not_marine", results[0]["flags"])
+        self.assertTrue(results[0]["annotations"]["aphia"] == 212668)
+        self.assertIsNone(results[0]["annotations"]["unaccepted"])
+
+    def test_name_synonym_accepted_marine_unsure(self):
+        records = [
+            {"id": 0, "scientificName": "Brockmanniella brockmannii"}
+        ]
+        results = taxonomy.check(records)
+        self.assertIn("scientificNameID", results[0]["missing"])
+        self.assertNotIn("scientificName", results[0]["missing"])
+        self.assertFalse(results[0]["dropped"])
+        self.assertIn("marine_unsure", results[0]["flags"])
+        self.assertTrue(results[0]["annotations"]["aphia"] == 971564)
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -1,4 +1,4 @@
-from . import util
+from obisqc.util import util
 import logging
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ def check_record(record):
         lon_check = util.check_float(record["decimalLongitude"], [-180, 180])
         if not lon_check["valid"]:
             result["invalid"].append("decimalLongitude")
-            if lon_check["in_range"]:
+            if not lon_check["in_range"]:
                 result["flags"].append("lon_out_of_range")
         else:
             result["annotations"]["decimalLongitude"] = lon_check["float"]
@@ -52,7 +52,7 @@ def check_record(record):
         min_check = util.check_float(record["minimumDepthInMeters"], [-100000, 11000])
         if not min_check["valid"]:
             result["invalid"].append("minimumDepthInMeters")
-            if min_check["in_range"]:
+            if not min_check["in_range"]:
                 result["flags"].append("min_depth_out_of_range")
         else:
             result["annotations"]["minimumDepthInMeters"] = min_check["float"]
@@ -63,7 +63,7 @@ def check_record(record):
         max_check = util.check_float(record["maximumDepthInMeters"], [-100000, 11000])
         if not max_check["valid"]:
             result["invalid"].append("maximumDepthInMeters")
-            if max_check["in_range"]:
+            if not max_check["in_range"]:
                 result["flags"].append("max_depth_out_of_range")
         else:
             result["annotations"]["maximumDepthInMeters"] = max_check["float"]

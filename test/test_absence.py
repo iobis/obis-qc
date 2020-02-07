@@ -37,6 +37,14 @@ class TestAbsence(unittest.TestCase):
         self.assertTrue(results[4]["absence"])
         self.assertFalse(results[5]["absence"])
 
+    def test_individualcount_invalid(self):
+        records = [
+            {"id": 1, "individualCount": "3 individuals" }
+        ]
+        results = absence.check(records)
+        self.assertFalse(results[0]["absence"])
+        self.assertIn("individualCount", results[0]["invalid"])
+
 
 if __name__ == "__main__":
     unittest.main()
