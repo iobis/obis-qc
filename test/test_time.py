@@ -19,7 +19,7 @@ class TestTime(unittest.TestCase):
         self.assertEqual(results[1]["annotations"]["date_mid"], 31536000000)
         self.assertEqual(results[1]["annotations"]["date_end"], 31536000000)
         self.assertEqual(results[2]["annotations"]["date_start"], 0)
-        #self.assertEqual(results[2]["annotations"]["date_mid"], 15768000000)
+        #self.assertEqual(results[2]["annotations"]["date_mid"], 15768000000) # todo: fix
         self.assertEqual(results[2]["annotations"]["date_end"], 31536000000)
 
     def test_min_date(self):
