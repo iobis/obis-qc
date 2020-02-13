@@ -5,6 +5,8 @@ logger = logging.getLogger(__name__)
 
 
 def check_record(record):
+    """Check location related fields."""
+
     result = {
         "id": record["id"],
         "missing": [],
@@ -82,6 +84,7 @@ def check_record(record):
 
 
 def check_xy(result, xy):
+    """Perform checks using results from the xylookup service."""
 
     # depth
 

@@ -6,10 +6,13 @@ logger = logging.getLogger(__name__)
 
 
 def date_to_millis(d):
+    """Convert a date to milliseconds."""
     return int((d - datetime.date(1970, 1, 1)).total_seconds() * 1000)
 
 
 def check_record(record, min_year=0):
+    """Check the eventDate."""
+
     result = {
         "id": record["id"],
         "missing": [],

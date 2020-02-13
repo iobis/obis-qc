@@ -9,6 +9,7 @@ match_cache = {}
 
 
 def check(taxa):
+    """Run all steps for taxonomic quality control."""
     check_fields(taxa)
     detect_lsid(taxa)
     #match_locally(taxa) # Todo: allow local matching?
@@ -18,6 +19,7 @@ def check(taxa):
 
 
 def check_fields(taxa):
+    """Check if taxonomy related fields are present."""
     for key, taxon in taxa.items():
         if "scientificName" not in taxon or taxon["scientificName"] is None:
             taxon["missing"].append("scientificName")
@@ -26,8 +28,7 @@ def check_fields(taxa):
 
 
 def detect_lsid(taxa):
-    """Checks if scientificNameID is present and parses LSID to Aphia ID."""
-
+    """Check if scientificNameID is present and parse LSID to Aphia ID."""
     for key, taxon in taxa.items():
         if "scientificNameID" in taxon and taxon["scientificNameID"] is not None:
             lsid = pyworms.parseLSID(taxon["scientificNameID"])
@@ -70,14 +71,17 @@ def match_worms(taxa):
 
 
 def has_alternative(aphia_info):
+    """Check if an alternative valid AphiaID is present and different from the AphiaID."""
     return "valid_AphiaID" in aphia_info["record"] and aphia_info["record"]["valid_AphiaID"] is not None and aphia_info["record"]["AphiaID"] != aphia_info["record"]["valid_AphiaID"]
 
 
 def is_accepted(aphia_info):
+    """Check if the Aphia status is accepted."""
     return aphia_info["record"]["status"] == Status.ACCEPTED.value
 
 
 def convert_environment(env):
+    """Convert an environment flag from integer to boolean."""
     if env is None:
         return None
     else:
@@ -85,6 +89,7 @@ def convert_environment(env):
 
 
 def fetch_aphia(lsid):
+    """Fetch the Aphia record and classification for an AphiaID."""
     record = pyworms.aphiaRecordByAphiaID(lsid)
     classification = pyworms.aphiaClassificationByAphiaID(lsid)
     aphia_info = {
@@ -96,7 +101,7 @@ def fetch_aphia(lsid):
 
 
 def fetch(taxa):
-    """Fetch aphia info from WoRMS."""
+    """Fetch Aphia info from WoRMS, including alternative."""
 
     for key, taxon in taxa.items():
         if "lsid" in taxon and taxon["lsid"] is not None:

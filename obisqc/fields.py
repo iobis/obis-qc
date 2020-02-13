@@ -3,6 +3,8 @@ logger = logging.getLogger(__name__)
 
 
 def check_record(record):
+    """Check required fields."""
+
     result = {
         "id": record["id"],
         "missing": [],

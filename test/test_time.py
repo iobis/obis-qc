@@ -52,7 +52,7 @@ class TestTime(unittest.TestCase):
 
     def test_missing_date(self):
         records = [
-            {"id": 1}
+            { "id": 1 }
         ]
         results = time.check(records)
         self.assertIn("eventDate", results[0]["missing"])

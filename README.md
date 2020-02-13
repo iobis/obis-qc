@@ -1,7 +1,7 @@
 ![tests](https://github.com/iobis/obis-qc/workflows/tests/badge.svg)
 
 # obis-qc
-### Running tests
+### Run tests
 
 ```
 nosetests --with-coverage --cover-package=obisqc --cover-html

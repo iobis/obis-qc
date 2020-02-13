@@ -22,12 +22,12 @@ class TestAbsence(unittest.TestCase):
 
     def test_individualcount(self):
         records = [
-            {"id": 0},
-            {"id": 1, "individualCount": "0" },
-            {"id": 2, "individualCount": "0.0" },
-            {"id": 3, "individualCount": 0 },
-            {"id": 4, "individualCount": 0.0 },
-            {"id": 5, "individualCount": 1 }
+            { "id": 0},
+            { "id": 1, "individualCount": "0" },
+            { "id": 2, "individualCount": "0.0" },
+            { "id": 3, "individualCount": 0 },
+            { "id": 4, "individualCount": 0.0 },
+            { "id": 5, "individualCount": 1 }
         ]
         results = absence.check(records)
         self.assertFalse(results[0]["absence"])
@@ -39,7 +39,7 @@ class TestAbsence(unittest.TestCase):
 
     def test_individualcount_invalid(self):
         records = [
-            {"id": 1, "individualCount": "3 individuals" }
+            { "id": 0, "individualCount": "3 individuals" }
         ]
         results = absence.check(records)
         self.assertFalse(results[0]["absence"])

@@ -60,7 +60,7 @@ class TestTaxonomy(unittest.TestCase):
 
     def test_name_invalid(self):
         records = [
-            {"id": 0, "scientificName": "Bivalve"}
+            { "id": 0, "scientificName": "Bivalve" }
         ]
         results = taxonomy.check(records)
         self.assertIn("scientificNameID", results[0]["missing"])
@@ -72,7 +72,7 @@ class TestTaxonomy(unittest.TestCase):
 
     def test_id_invalid(self):
         records = [
-            {"id": 0, "scientificNameID": "urn:lsid:itis.gov:itis_tsn:28726"}
+            { "id": 0, "scientificNameID": "urn:lsid:itis.gov:itis_tsn:28726" }
         ]
         results = taxonomy.check(records)
         self.assertNotIn("scientificNameID", results[0]["missing"])
@@ -86,7 +86,7 @@ class TestTaxonomy(unittest.TestCase):
 
     def test_id_non_existing(self):
         records = [
-            {"id": 0, "scientificNameID": "urn:lsid:marinespecies.org:taxname:99999999"}
+            { "id": 0, "scientificNameID": "urn:lsid:marinespecies.org:taxname:99999999" }
         ]
         results = taxonomy.check(records)
         self.assertNotIn("scientificNameID", results[0]["missing"])
@@ -99,7 +99,7 @@ class TestTaxonomy(unittest.TestCase):
 
     def test_name_not_marine(self):
         records = [
-            {"id": 0, "scientificName": "Ardea cinerea"}
+            { "id": 0, "scientificName": "Ardea cinerea" }
         ]
         results = taxonomy.check(records)
         self.assertIn("scientificNameID", results[0]["missing"])
@@ -111,7 +111,7 @@ class TestTaxonomy(unittest.TestCase):
 
     def test_name_synonym_accepted_marine_unsure(self):
         records = [
-            {"id": 0, "scientificName": "Brockmanniella brockmannii"}
+            { "id": 0, "scientificName": "Brockmanniella brockmannii" }
         ]
         results = taxonomy.check(records)
         self.assertIn("scientificNameID", results[0]["missing"])
@@ -122,7 +122,7 @@ class TestTaxonomy(unittest.TestCase):
 
     def test_nomen_nudum(self):
         records = [
-            {"id": 0, "scientificNameID": "urn:lsid:marinespecies.org:taxname:152230", "scientificName": "Coelenterata tissue"}
+            { "id": 0, "scientificNameID": "urn:lsid:marinespecies.org:taxname:152230", "scientificName": "Coelenterata tissue" }
         ]
         results = taxonomy.check(records)
         self.assertNotIn("scientificName", results[0]["missing"])
@@ -135,7 +135,7 @@ class TestTaxonomy(unittest.TestCase):
 
     def test_aphiaid_zero(self):
         records = [
-            {"id": 0, "scientificName": "Phytoplankton color", "scientificNameID": "urn:lsid:marinespecies.org:taxname:0"}
+            { "id": 0, "scientificName": "Phytoplankton color", "scientificNameID": "urn:lsid:marinespecies.org:taxname:0" }
         ]
         results = taxonomy.check(records)
         self.assertNotIn("scientificName", results[0]["missing"])
@@ -145,7 +145,7 @@ class TestTaxonomy(unittest.TestCase):
 
     def test_paraphyletic(self):
         records = [
-            {"id": 0, "scientificNameID": "urn:lsid:marinespecies.org:taxname:794", "scientificName": "Turbellaria"}
+            { "id": 0, "scientificNameID": "urn:lsid:marinespecies.org:taxname:794", "scientificName": "Turbellaria" }
         ]
         results = taxonomy.check(records)
         self.assertNotIn("scientificName", results[0]["missing"])
@@ -158,7 +158,7 @@ class TestTaxonomy(unittest.TestCase):
 
     def test_uncertain(self):
         records = [
-            {"id": 0, "scientificNameID": "urn:lsid:marinespecies.org:taxname:835694", "scientificName": "Operculodinium centrocarpum"}
+            { "id": 0, "scientificNameID": "urn:lsid:marinespecies.org:taxname:835694", "scientificName": "Operculodinium centrocarpum" }
         ]
         results = taxonomy.check(records)
         self.assertNotIn("scientificName", results[0]["missing"])
@@ -171,7 +171,7 @@ class TestTaxonomy(unittest.TestCase):
 
     def test_nomen_dubium(self):
         records = [
-            {"id": 0, "scientificNameID": "urn:lsid:marinespecies.org:taxname:130270", "scientificName": "Magelona minuta"}
+            { "id": 0, "scientificNameID": "urn:lsid:marinespecies.org:taxname:130270", "scientificName": "Magelona minuta" }
         ]
         results = taxonomy.check(records)
         self.assertNotIn("scientificName", results[0]["missing"])
