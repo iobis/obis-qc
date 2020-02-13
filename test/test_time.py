@@ -1,5 +1,6 @@
 import unittest
 from obisqc import time
+from obisqc.util.flags import Flag
 
 
 class TestTime(unittest.TestCase):
@@ -27,7 +28,7 @@ class TestTime(unittest.TestCase):
         ]
         results = time.check(records, min_year=1900)
         self.assertNotIn("date_start", results[0]["annotations"])
-        self.assertIn("date_before_min", results[0]["flags"])
+        self.assertIn(Flag.DATE_BEFORE_MIN.value, results[0]["flags"])
         self.assertIn("eventDate", results[0]["invalid"])
         self.assertFalse(results[0]["dropped"])
 
@@ -37,7 +38,7 @@ class TestTime(unittest.TestCase):
         ]
         results = time.check(records)
         self.assertNotIn("date_start", results[0]["annotations"])
-        self.assertIn("date_in_future", results[0]["flags"])
+        self.assertIn(Flag.DATE_IN_FUTURE.value, results[0]["flags"])
         self.assertIn("eventDate", results[0]["invalid"])
         self.assertFalse(results[0]["dropped"])
 

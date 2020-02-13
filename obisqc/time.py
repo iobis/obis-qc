@@ -1,6 +1,7 @@
 from isodateparser import ISODateParser
 import datetime
 import logging
+from obisqc.util.flags import Flag
 logger = logging.getLogger(__name__)
 
 
@@ -22,14 +23,14 @@ def check_record(record, min_year=0):
             parser = ISODateParser(record["eventDate"])
             if parser.dates["mid"].year < min_year:
                 # year precedes minimum year in settings
-                result["flags"].append("date_before_min")
+                result["flags"].append(Flag.DATE_BEFORE_MIN.value)
                 raise ValueError
             ms_start = date_to_millis(parser.dates["start"])
             ms_mid = date_to_millis(parser.dates["mid"])
             ms_end = date_to_millis(parser.dates["end"])
             if ms_start > date_to_millis(datetime.date.today()):
                 # date in the future
-                result["flags"].append("date_in_future")
+                result["flags"].append(Flag.DATE_IN_FUTURE.value)
                 raise ValueError
             result["annotations"]["date_start"] = ms_start
             result["annotations"]["date_mid"] = ms_mid

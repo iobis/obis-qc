@@ -1,5 +1,7 @@
 import pyworms
 import logging
+from obisqc.util.flags import Flag
+from obisqc.util.status import Status
 logger = logging.getLogger(__name__)
 
 
@@ -71,6 +73,10 @@ def has_alternative(aphia_info):
     return "valid_AphiaID" in aphia_info["record"] and aphia_info["record"]["valid_AphiaID"] is not None and aphia_info["record"]["AphiaID"] != aphia_info["record"]["valid_AphiaID"]
 
 
+def is_accepted(aphia_info):
+    return aphia_info["record"]["status"] == Status.ACCEPTED.value
+
+
 def convert_environment(env):
     if env is None:
         return None
@@ -90,7 +96,7 @@ def fetch_aphia(lsid):
 
 
 def fetch(taxa):
-    """Fetch aphia info from WoRMS. Todo: sync with OBIS database."""
+    """Fetch aphia info from WoRMS."""
 
     for key, taxon in taxa.items():
         if "lsid" in taxon and taxon["lsid"] is not None:
@@ -102,7 +108,7 @@ def fetch(taxa):
                 taxon["aphia_info"] = aphia_info
                 if has_alternative(aphia_info):
 
-                    # status not accepted
+                    # alternative provided
 
                     aphia_info_accepted = fetch_aphia(taxon["aphia_info"]["record"]["valid_AphiaID"])
                     if aphia_info_accepted["record"] is None or aphia_info_accepted["classification"] is None:
@@ -115,11 +121,12 @@ def process_info(taxa):
     """Go through processed list of taxa to add flags and mark as dropped."""
 
     for key, taxon in taxa.items():
+
         if taxon["aphia_info"] is None:
 
             # no Aphia record found
 
-            taxon["flags"].append("no_match")
+            taxon["flags"].append(Flag.NO_MATCH.value)
             taxon["dropped"] = True
 
             if taxon["scientificNameID"] is not None:
@@ -128,9 +135,11 @@ def process_info(taxa):
 
         else:
 
+            taxon["dropped"] = False
+
             # Aphia record found
 
-            if has_alternative(taxon["aphia_info"]):
+            if not is_accepted(taxon["aphia_info"]):
 
                 # not accepted
 
@@ -147,9 +156,16 @@ def process_info(taxa):
 
                     # no alternative provided
 
-                    taxon["flags"].append("no_match")
-                    taxon["dropped"] = True
-                    return
+                    taxon["flags"].append(Flag.NO_ACCEPTED_NAME.value)
+
+                    taxon["aphia"] = taxon["aphia_info"]["record"]["AphiaID"]
+                    taxon["marine"] = convert_environment(taxon["aphia_info"]["record"]["isMarine"])
+                    taxon["brackish"] = convert_environment(taxon["aphia_info"]["record"]["isBrackish"])
+
+                    if taxon["aphia_info"]["record"]["status"] in [Status.NOMEN_NUDUM.value, Status.UNCERTAIN.value, Status.UNACCEPTED.value, Status.NOMEN_DUBIUM.value]:
+                        taxon["dropped"] = False
+                    else:
+                        taxon["dropped"] = True
 
             else:
 
@@ -159,16 +175,10 @@ def process_info(taxa):
                 taxon["marine"] = convert_environment(taxon["aphia_info"]["record"]["isMarine"])
                 taxon["brackish"] = convert_environment(taxon["aphia_info"]["record"]["isBrackish"])
 
+            # marine flag
+
             if taxon["marine"] is False and taxon["brackish"] is False:
-
-                # not marine
-
-                taxon["flags"].append("not_marine")
+                taxon["flags"].append(Flag.NOT_MARINE.value)
                 taxon["dropped"] = True
-
             elif taxon["marine"] is None or taxon["marine"] is None:
-
-                # marine unsure
-
-                taxon["flags"].append("marine_unsure")
-
+                taxon["flags"].append(Flag.MARINE_UNSURE.value)

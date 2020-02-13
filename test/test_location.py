@@ -1,5 +1,6 @@
 import unittest
 from obisqc import location
+from obisqc.util.flags import Flag
 
 
 class TestLocation(unittest.TestCase):
@@ -12,11 +13,11 @@ class TestLocation(unittest.TestCase):
         results = location.check(records)
         self.assertEqual(results[0]["annotations"]["decimalLongitude"], 2.1)
         self.assertEqual(results[0]["annotations"]["decimalLatitude"], 51.3)
-        self.assertNotIn("no_coord", results[0]["flags"])
+        self.assertNotIn(Flag.NO_COORD.value, results[0]["flags"])
         self.assertFalse(results[0]["dropped"])
         self.assertEqual(results[1]["annotations"]["decimalLongitude"], 2.1)
         self.assertEqual(results[1]["annotations"]["decimalLatitude"], 51.3)
-        self.assertNotIn("no_coord", results[1]["flags"])
+        self.assertNotIn(Flag.NO_COORD.value, results[1]["flags"])
         self.assertFalse(results[1]["dropped"])
 
     def test_missing_coordinates(self):
@@ -28,13 +29,13 @@ class TestLocation(unittest.TestCase):
         results = location.check(records)
         self.assertEqual(results[0]["annotations"]["decimalLatitude"], 51.3)
         self.assertIn("decimalLongitude", results[0]["missing"])
-        self.assertIn("no_coord", results[0]["flags"])
+        self.assertIn(Flag.NO_COORD.value, results[0]["flags"])
         self.assertTrue(results[0]["dropped"])
         self.assertEqual(results[1]["annotations"]["decimalLongitude"], 2.1)
-        self.assertIn("no_coord", results[1]["flags"])
+        self.assertIn(Flag.NO_COORD.value, results[1]["flags"])
         self.assertTrue(results[1]["dropped"])
         self.assertIn("decimalLatitude", results[1]["missing"])
-        self.assertIn("no_coord", results[2]["flags"])
+        self.assertIn(Flag.NO_COORD.value, results[2]["flags"])
         self.assertTrue(results[2]["dropped"])
         self.assertIn("decimalLongitude", results[2]["missing"])
         self.assertIn("decimalLatitude", results[2]["missing"])
@@ -46,7 +47,7 @@ class TestLocation(unittest.TestCase):
         results = location.check(records)
         self.assertEqual(results[0]["annotations"]["decimalLongitude"], 2.1)
         self.assertIn("decimalLatitude", results[0]["invalid"])
-        self.assertIn("no_coord", results[0]["flags"])
+        self.assertIn(Flag.NO_COORD.value, results[0]["flags"])
         self.assertTrue(results[0]["dropped"])
 
     def test_coordinates_out_of_range(self):
@@ -58,9 +59,9 @@ class TestLocation(unittest.TestCase):
         self.assertNotIn("decimalLatitude", results[0]["annotations"])
         self.assertIn("decimalLongitude", results[0]["invalid"])
         self.assertIn("decimalLatitude", results[0]["invalid"])
-        self.assertIn("no_coord", results[0]["flags"])
-        self.assertIn("lon_out_of_range", results[0]["flags"])
-        self.assertIn("lat_out_of_range", results[0]["flags"])
+        self.assertIn(Flag.NO_COORD.value, results[0]["flags"])
+        self.assertIn(Flag.LON_OUT_OF_RANGE.value, results[0]["flags"])
+        self.assertIn(Flag.LAT_OUT_OF_RANGE.value, results[0]["flags"])
         self.assertTrue(results[0]["dropped"])
 
     def test_zero_coordinates(self):
@@ -69,8 +70,8 @@ class TestLocation(unittest.TestCase):
             { "id": 1, "decimalLongitude": 1, "decimalLatitude": 0 }
         ]
         results = location.check(records)
-        self.assertIn("zero_coord", results[0]["flags"])
-        self.assertNotIn("zero_coord", results[1]["flags"])
+        self.assertIn(Flag.ZERO_COORD.value, results[0]["flags"])
+        self.assertNotIn(Flag.ZERO_COORD.value, results[1]["flags"])
 
     def test_depth_parsing(self):
         records = [
@@ -80,10 +81,10 @@ class TestLocation(unittest.TestCase):
         results = location.check(records)
         self.assertEqual(results[0]["annotations"]["minimumDepthInMeters"], 2)
         self.assertEqual(results[0]["annotations"]["maximumDepthInMeters"], 10)
-        self.assertNotIn("no_depth", results[0]["flags"])
+        self.assertNotIn(Flag.NO_DEPTH.value, results[0]["flags"])
         self.assertEqual(results[1]["annotations"]["minimumDepthInMeters"], 2)
         self.assertEqual(results[1]["annotations"]["maximumDepthInMeters"], 10)
-        self.assertNotIn("no_depth", results[1]["flags"])
+        self.assertNotIn(Flag.NO_DEPTH.value, results[1]["flags"])
 
     def test_depth_exceeds_bath(self):
         records = [
@@ -93,14 +94,14 @@ class TestLocation(unittest.TestCase):
         ]
         results = location.check(records, xylookup=True)
         self.assertEqual(results[0]["annotations"]["minimumDepthInMeters"], 1000)
-        self.assertNotIn("no_depth", results[0]["flags"])
-        self.assertIn("depth_exceeds_bath", results[0]["flags"])
+        self.assertNotIn(Flag.NO_DEPTH.value, results[0]["flags"])
+        self.assertIn(Flag.DEPTH_EXCEEDS_BATH.value, results[0]["flags"])
         self.assertEqual(results[1]["annotations"]["minimumDepthInMeters"], 10)
-        self.assertNotIn("no_depth", results[1]["flags"])
-        self.assertNotIn("depth_exceeds_bath", results[1]["flags"])
+        self.assertNotIn(Flag.NO_DEPTH.value, results[1]["flags"])
+        self.assertNotIn(Flag.DEPTH_EXCEEDS_BATH.value, results[1]["flags"])
         self.assertEqual(results[2]["annotations"]["minimumDepthInMeters"], 10)
-        self.assertNotIn("no_depth", results[2]["flags"])
-        self.assertIn("depth_exceeds_bath", results[2]["flags"])
+        self.assertNotIn(Flag.NO_DEPTH.value, results[2]["flags"])
+        self.assertIn(Flag.DEPTH_EXCEEDS_BATH.value, results[2]["flags"])
 
     def test_depth_min_max(self):
         records = [
@@ -109,8 +110,8 @@ class TestLocation(unittest.TestCase):
         results = location.check(records)
         self.assertEqual(results[0]["annotations"]["minimumDepthInMeters"], 10)
         self.assertEqual(results[0]["annotations"]["maximumDepthInMeters"], 2)
-        self.assertNotIn("no_depth", results[0]["flags"])
-        self.assertIn("min_depth_exceeds_max_depth", results[0]["flags"])
+        self.assertNotIn(Flag.NO_DEPTH.value, results[0]["flags"])
+        self.assertIn(Flag.MIN_DEPTH_EXCEEDS_MAX.value, results[0]["flags"])
 
     def test_depth_out_of_range(self):
         records = [
@@ -119,9 +120,10 @@ class TestLocation(unittest.TestCase):
         results = location.check(records)
         self.assertNotIn("minimumDepthInMeters", results[0]["annotations"])
         self.assertNotIn("maximumDepthInMeters", results[0]["annotations"])
-        self.assertIn("no_depth", results[0]["flags"])
-        self.assertIn("min_depth_out_of_range", results[0]["flags"])
-        self.assertIn("max_depth_out_of_range", results[0]["flags"])
+        self.assertIn(Flag.NO_DEPTH.value
+                      , results[0]["flags"])
+        self.assertIn(Flag.DEPTH_OUT_OF_RANGE.value, results[0]["flags"])
+        self.assertIn(Flag.DEPTH_OUT_OF_RANGE.value, results[0]["flags"])
 
     def test_shoredistance(self):
         records = [
@@ -133,7 +135,7 @@ class TestLocation(unittest.TestCase):
         self.assertTrue(results[0]["annotations"]["shoredistance"] > 0)
         self.assertIn("shoredistance", results[1]["annotations"])
         self.assertTrue(results[1]["annotations"]["shoredistance"] < 0)
-        self.assertIn("on_land", results[1]["flags"])
+        self.assertIn(Flag.ON_LAND.value, results[1]["flags"])
 
     def test_areas(self):
         records = [

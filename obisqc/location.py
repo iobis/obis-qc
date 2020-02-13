@@ -1,5 +1,6 @@
 from obisqc.util import util
 import logging
+from obisqc.util.flags import Flag
 logger = logging.getLogger(__name__)
 
 
@@ -20,7 +21,7 @@ def check_record(record):
         if not lon_check["valid"]:
             result["invalid"].append("decimalLongitude")
             if not lon_check["in_range"]:
-                result["flags"].append("lon_out_of_range")
+                result["flags"].append(Flag.LON_OUT_OF_RANGE.value)
         else:
             result["annotations"]["decimalLongitude"] = lon_check["float"]
     else:
@@ -31,19 +32,19 @@ def check_record(record):
         if not lat_check["valid"]:
             result["invalid"].append("decimalLatitude")
             if not lat_check["in_range"]:
-                result["flags"].append("lat_out_of_range")
+                result["flags"].append(Flag.LAT_OUT_OF_RANGE.value)
         else:
             result["annotations"]["decimalLatitude"] = lat_check["float"]
     else:
         result["missing"].append("decimalLatitude")
 
     if (not "decimalLongitude" in result["annotations"]) or (not "decimalLatitude" in result["annotations"]):
-        result["flags"].append("no_coord")
+        result["flags"].append(Flag.NO_COORD.value)
         result["dropped"] = True
 
     if "decimalLongitude" in result["annotations"] and "decimalLatitude" in result["annotations"]:
         if result["annotations"]["decimalLongitude"] == 0 and result["annotations"]["decimalLatitude"] == 0:
-            result["flags"].append("zero_coord")
+            result["flags"].append(Flag.ZERO_COORD.value)
             result["dropped"] = True
 
     # depth
@@ -53,7 +54,7 @@ def check_record(record):
         if not min_check["valid"]:
             result["invalid"].append("minimumDepthInMeters")
             if not min_check["in_range"]:
-                result["flags"].append("min_depth_out_of_range")
+                result["flags"].append(Flag.DEPTH_OUT_OF_RANGE.value)
         else:
             result["annotations"]["minimumDepthInMeters"] = min_check["float"]
     else:
@@ -64,18 +65,18 @@ def check_record(record):
         if not max_check["valid"]:
             result["invalid"].append("maximumDepthInMeters")
             if not max_check["in_range"]:
-                result["flags"].append("max_depth_out_of_range")
+                result["flags"].append(Flag.DEPTH_OUT_OF_RANGE.value)
         else:
             result["annotations"]["maximumDepthInMeters"] = max_check["float"]
     else:
         result["missing"].append("maximumDepthInMeters")
 
     if (not "minimumDepthInMeters" in result["annotations"]) and (not "maximumDepthInMeters" in result["annotations"]):
-        result["flags"].append("no_depth")
+        result["flags"].append(Flag.NO_DEPTH.value)
 
     if "minimumDepthInMeters" in result["annotations"] and "maximumDepthInMeters" in result["annotations"]:
         if result["annotations"]["minimumDepthInMeters"] > result["annotations"]["maximumDepthInMeters"]:
-            result["flags"].append("min_depth_exceeds_max_depth")
+            result["flags"].append(Flag.MIN_DEPTH_EXCEEDS_MAX.value)
 
     return result
 
@@ -92,13 +93,13 @@ def check_xy(result, xy):
         if result["annotations"]["maximumDepthInMeters"] > xy["grids"]["bathymetry"]:
             depth_exceeds_bath = True
     if depth_exceeds_bath:
-        result["flags"].append("depth_exceeds_bath")
+        result["flags"].append(Flag.DEPTH_EXCEEDS_BATH.value)
 
     # shoredistance
 
     result["annotations"]["shoredistance"] = xy["shoredistance"]
     if xy["shoredistance"] < 0:
-        result["flags"].append("on_land")
+        result["flags"].append(Flag.ON_LAND.value)
 
     # areas
 

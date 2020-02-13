@@ -1,10 +1,11 @@
 import unittest
 from obisqc import taxonomy
 import logging
-
+from obisqc.util.flags import Flag
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)-12s %(levelname)-8s %(message)s", datefmt="%H:%M:%S")
 logging.getLogger("urllib3").setLevel(logging.INFO)
+logging.getLogger("obisqc.util.aphia").setLevel(logging.INFO)
 
 
 class TestTaxonomy(unittest.TestCase):
@@ -65,7 +66,7 @@ class TestTaxonomy(unittest.TestCase):
         self.assertIn("scientificNameID", results[0]["missing"])
         self.assertNotIn("scientificName", results[0]["missing"])
         self.assertTrue(results[0]["dropped"])
-        self.assertIn("no_match", results[0]["flags"])
+        self.assertIn(Flag.NO_MATCH.value, results[0]["flags"])
         self.assertIsNone(results[0]["annotations"]["aphia"])
         self.assertIsNone(results[0]["annotations"]["unaccepted"])
 
@@ -77,7 +78,7 @@ class TestTaxonomy(unittest.TestCase):
         self.assertNotIn("scientificNameID", results[0]["missing"])
         self.assertIn("scientificName", results[0]["missing"])
         self.assertTrue(results[0]["dropped"])
-        self.assertIn("no_match", results[0]["flags"])
+        self.assertIn(Flag.NO_MATCH.value, results[0]["flags"])
         self.assertIn("scientificNameID", results[0]["invalid"])
         self.assertTrue(len(results[0]["invalid"]) == 1)
         self.assertIsNone(results[0]["annotations"]["aphia"])
@@ -91,7 +92,7 @@ class TestTaxonomy(unittest.TestCase):
         self.assertNotIn("scientificNameID", results[0]["missing"])
         self.assertIn("scientificName", results[0]["missing"])
         self.assertTrue(results[0]["dropped"])
-        self.assertIn("no_match", results[0]["flags"])
+        self.assertIn(Flag.NO_MATCH.value, results[0]["flags"])
         self.assertIn("scientificNameID", results[0]["invalid"])
         self.assertIsNone(results[0]["annotations"]["aphia"])
         self.assertIsNone(results[0]["annotations"]["unaccepted"])
@@ -104,7 +105,7 @@ class TestTaxonomy(unittest.TestCase):
         self.assertIn("scientificNameID", results[0]["missing"])
         self.assertNotIn("scientificName", results[0]["missing"])
         self.assertTrue(results[0]["dropped"])
-        self.assertIn("not_marine", results[0]["flags"])
+        self.assertIn(Flag.NOT_MARINE.value, results[0]["flags"])
         self.assertTrue(results[0]["annotations"]["aphia"] == 212668)
         self.assertIsNone(results[0]["annotations"]["unaccepted"])
 
@@ -116,8 +117,70 @@ class TestTaxonomy(unittest.TestCase):
         self.assertIn("scientificNameID", results[0]["missing"])
         self.assertNotIn("scientificName", results[0]["missing"])
         self.assertFalse(results[0]["dropped"])
-        self.assertIn("marine_unsure", results[0]["flags"])
+        self.assertIn(Flag.MARINE_UNSURE.value, results[0]["flags"])
         self.assertTrue(results[0]["annotations"]["aphia"] == 971564)
+
+    def test_nomen_nudum(self):
+        records = [
+            {"id": 0, "scientificNameID": "urn:lsid:marinespecies.org:taxname:152230", "scientificName": "Coelenterata tissue"}
+        ]
+        results = taxonomy.check(records)
+        self.assertNotIn("scientificName", results[0]["missing"])
+        self.assertNotIn("scientificNameID", results[0]["missing"])
+        self.assertFalse(results[0]["dropped"])
+        self.assertNotIn(Flag.NO_MATCH.value, results[0]["flags"])
+        self.assertIn(Flag.MARINE_UNSURE.value, results[0]["flags"])
+        self.assertIn(Flag.NO_ACCEPTED_NAME.value, results[0]["flags"])
+        self.assertTrue(results[0]["annotations"]["aphia"] == 152230)
+
+    def test_aphiaid_zero(self):
+        records = [
+            {"id": 0, "scientificName": "Phytoplankton color", "scientificNameID": "urn:lsid:marinespecies.org:taxname:0"}
+        ]
+        results = taxonomy.check(records)
+        self.assertNotIn("scientificName", results[0]["missing"])
+        self.assertNotIn("scientificNameID", results[0]["missing"])
+        self.assertTrue(results[0]["dropped"])
+        self.assertIn(Flag.NO_MATCH.value, results[0]["flags"])
+
+    def test_paraphyletic(self):
+        records = [
+            {"id": 0, "scientificNameID": "urn:lsid:marinespecies.org:taxname:794", "scientificName": "Turbellaria"}
+        ]
+        results = taxonomy.check(records)
+        self.assertNotIn("scientificName", results[0]["missing"])
+        self.assertNotIn("scientificNameID", results[0]["missing"])
+        self.assertFalse(results[0]["dropped"])
+        self.assertNotIn(Flag.NO_MATCH.value, results[0]["flags"])
+        self.assertIn(Flag.NO_ACCEPTED_NAME.value, results[0]["flags"])
+        self.assertNotIn(Flag.MARINE_UNSURE.value, results[0]["flags"])
+        self.assertTrue(results[0]["annotations"]["aphia"] == 794)
+
+    def test_uncertain(self):
+        records = [
+            {"id": 0, "scientificNameID": "urn:lsid:marinespecies.org:taxname:835694", "scientificName": "Operculodinium centrocarpum"}
+        ]
+        results = taxonomy.check(records)
+        self.assertNotIn("scientificName", results[0]["missing"])
+        self.assertNotIn("scientificNameID", results[0]["missing"])
+        self.assertFalse(results[0]["dropped"])
+        self.assertNotIn(Flag.NO_MATCH.value, results[0]["flags"])
+        self.assertIn(Flag.NO_ACCEPTED_NAME.value, results[0]["flags"])
+        self.assertIn(Flag.MARINE_UNSURE.value, results[0]["flags"])
+        self.assertTrue(results[0]["annotations"]["aphia"] == 835694)
+
+    def test_nomen_dubium(self):
+        records = [
+            {"id": 0, "scientificNameID": "urn:lsid:marinespecies.org:taxname:130270", "scientificName": "Magelona minuta"}
+        ]
+        results = taxonomy.check(records)
+        self.assertNotIn("scientificName", results[0]["missing"])
+        self.assertNotIn("scientificNameID", results[0]["missing"])
+        self.assertFalse(results[0]["dropped"])
+        self.assertNotIn(Flag.NO_MATCH.value, results[0]["flags"])
+        self.assertIn(Flag.NO_ACCEPTED_NAME.value, results[0]["flags"])
+        self.assertNotIn(Flag.MARINE_UNSURE.value, results[0]["flags"])
+        self.assertTrue(results[0]["annotations"]["aphia"] == 130270)
 
 
 if __name__ == "__main__":
