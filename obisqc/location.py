@@ -128,6 +128,9 @@ def check(records, xylookup=False):
         xy = misc.do_xylookup(results)
         assert(len(xy) == len(results))
         for i in range(len(results)):
-            check_xy(results[i], xy[i])
+            if xy[i] is not None:
+                check_xy(results[i], xy[i])
+            else:
+                logger.warning("No xylookup result for %s") % results[i]["id"]
 
     return results
