@@ -1,4 +1,4 @@
-from obisqc.util import util
+from . util import misc
 import logging
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ def check_record(record):
     # individualCount
 
     if "individualCount" in record and record["individualCount"] is not None:
-        count_check = util.check_float(record["individualCount"])
+        count_check = misc.check_float(record["individualCount"])
         if not count_check["valid"]:
             result["invalid"].append("individualCount")
         else:

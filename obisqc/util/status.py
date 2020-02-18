@@ -6,3 +6,5 @@ class Status(Enum):
     NOMEN_NUDUM = "nomen nudum"
     NOMEN_DUBIUM = "nomen dubium"
     UNCERTAIN = "uncertain"
+    TAXON_INQUIRENDUM = "taxon inquirendum"
+    INTERIM_UNPUBLISHED = "interim unpublished"

@@ -1,6 +1,6 @@
-from obisqc.util import util
+from .util import misc
 import logging
-from obisqc.util.flags import Flag
+from .util.flags import Flag
 logger = logging.getLogger(__name__)
 
 
@@ -19,7 +19,7 @@ def check_record(record):
     # coordinates
 
     if "decimalLongitude" in record:
-        lon_check = util.check_float(record["decimalLongitude"], [-180, 180])
+        lon_check = misc.check_float(record["decimalLongitude"], [-180, 180])
         if not lon_check["valid"]:
             result["invalid"].append("decimalLongitude")
             if not lon_check["in_range"]:
@@ -30,7 +30,7 @@ def check_record(record):
         result["missing"].append("decimalLongitude")
 
     if "decimalLatitude" in record:
-        lat_check = util.check_float(record["decimalLatitude"], [-90, 90])
+        lat_check = misc.check_float(record["decimalLatitude"], [-90, 90])
         if not lat_check["valid"]:
             result["invalid"].append("decimalLatitude")
             if not lat_check["in_range"]:
@@ -52,7 +52,7 @@ def check_record(record):
     # depth
 
     if "minimumDepthInMeters" in record:
-        min_check = util.check_float(record["minimumDepthInMeters"], [-100000, 11000])
+        min_check = misc.check_float(record["minimumDepthInMeters"], [-100000, 11000])
         if not min_check["valid"]:
             result["invalid"].append("minimumDepthInMeters")
             if not min_check["in_range"]:
@@ -63,7 +63,7 @@ def check_record(record):
         result["missing"].append("minimumDepthInMeters")
 
     if "maximumDepthInMeters" in record:
-        max_check = util.check_float(record["maximumDepthInMeters"], [-100000, 11000])
+        max_check = misc.check_float(record["maximumDepthInMeters"], [-100000, 11000])
         if not max_check["valid"]:
             result["invalid"].append("maximumDepthInMeters")
             if not max_check["in_range"]:
@@ -125,7 +125,7 @@ def check_xy(result, xy):
 def check(records, xylookup=False):
     results = [check_record(record) for record in records]
     if xylookup:
-        xy = util.do_xylookup(results)
+        xy = misc.do_xylookup(results)
         assert(len(xy) == len(results))
         for i in range(len(results)):
             check_xy(results[i], xy[i])

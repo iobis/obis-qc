@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(name="obisqc",
       version="0.0.1",
@@ -7,5 +7,5 @@ setup(name="obisqc",
       author="Pieter Provoost",
       author_email="p.provoost@unesco.org",
       description="OBIS QC checks",
-      packages=["obisqc"],
+      packages=find_packages(),
       zip_safe=False)

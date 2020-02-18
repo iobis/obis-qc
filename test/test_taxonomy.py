@@ -182,6 +182,28 @@ class TestTaxonomy(unittest.TestCase):
         self.assertNotIn(Flag.MARINE_UNSURE.value, results[0]["flags"])
         self.assertTrue(results[0]["annotations"]["aphia"] == 130270)
 
+    def test_taxon_inquirendum(self):
+        records = [
+            { "id": 0, "scientificNameID": "urn:lsid:marinespecies.org:taxname:133144" }
+        ]
+        results = taxonomy.check(records)
+        self.assertNotIn("scientificNameID", results[0]["missing"])
+        self.assertFalse(results[0]["dropped"])
+        self.assertNotIn(Flag.NO_MATCH.value, results[0]["flags"])
+        self.assertIn(Flag.NO_ACCEPTED_NAME.value, results[0]["flags"])
+        self.assertTrue(results[0]["annotations"]["aphia"] == 133144)
+
+    def test_interim_unpublished(self):
+        records = [
+            { "id": 0, "scientificNameID": "urn:lsid:marinespecies.org:taxname:1057043" }
+        ]
+        results = taxonomy.check(records)
+        self.assertNotIn("scientificNameID", results[0]["missing"])
+        self.assertFalse(results[0]["dropped"])
+        self.assertNotIn(Flag.NO_MATCH.value, results[0]["flags"])
+        self.assertIn(Flag.NO_ACCEPTED_NAME.value, results[0]["flags"])
+        self.assertTrue(results[0]["annotations"]["aphia"] == 1057043)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,7 +1,7 @@
 import pyworms
 import logging
-from obisqc.util.flags import Flag
-from obisqc.util.status import Status
+from .flags import Flag
+from .status import Status
 logger = logging.getLogger(__name__)
 
 
@@ -167,7 +167,14 @@ def process_info(taxa):
                     taxon["marine"] = convert_environment(taxon["aphia_info"]["record"]["isMarine"])
                     taxon["brackish"] = convert_environment(taxon["aphia_info"]["record"]["isBrackish"])
 
-                    if taxon["aphia_info"]["record"]["status"] in [Status.NOMEN_NUDUM.value, Status.UNCERTAIN.value, Status.UNACCEPTED.value, Status.NOMEN_DUBIUM.value]:
+                    if taxon["aphia_info"]["record"]["status"] in [
+                        Status.NOMEN_NUDUM.value,
+                        Status.UNCERTAIN.value,
+                        Status.UNACCEPTED.value,
+                        Status.NOMEN_DUBIUM.value,
+                        Status.TAXON_INQUIRENDUM.value,
+                        Status.INTERIM_UNPUBLISHED.value
+                    ]:
                         taxon["dropped"] = False
                     else:
                         taxon["dropped"] = True

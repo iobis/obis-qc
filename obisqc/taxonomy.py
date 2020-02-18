@@ -1,4 +1,4 @@
-from obisqc.util import aphia
+from .util import aphia
 
 
 def check(records):

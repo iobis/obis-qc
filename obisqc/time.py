@@ -1,7 +1,7 @@
 from isodateparser import ISODateParser
 import datetime
 import logging
-from obisqc.util.flags import Flag
+from .util.flags import Flag
 logger = logging.getLogger(__name__)
 
 
