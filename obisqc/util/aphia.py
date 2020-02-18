@@ -8,13 +8,12 @@ logger = logging.getLogger(__name__)
 match_cache = {}
 
 
-def check(taxa):
+def check(taxa, cache=None):
     """Run all steps for taxonomic quality control."""
     check_fields(taxa)
     detect_lsid(taxa)
-    #match_locally(taxa) # Todo: allow local matching?
-    match_worms(taxa)
-    fetch(taxa)
+    match_worms(taxa, cache)
+    fetch(taxa, cache)
     process_info(taxa)
 
 
@@ -38,10 +37,10 @@ def detect_lsid(taxa):
                 taxon["lsid"] = lsid
 
 
-def match_worms(taxa):
+def match_worms(taxa, cache=None):
     """Try to match any records that have a scientificName but no LSID. Results from previous batches are kept in a cache."""
 
-    # gather all keys and names that need matching (no LSID, not in cache)
+    # gather all keys and names that need matching (no LSID, not in matching cache)
 
     allkeys = taxa.keys()
     names = []
@@ -55,7 +54,7 @@ def match_worms(taxa):
                 keys.append(key)
                 names.append(name)
 
-    # do matching
+    # do matching (todo: support cache)
 
     if len(names) > 0:
         allmatches = pyworms.aphiaRecordsByMatchNames(names, False)
@@ -88,25 +87,34 @@ def convert_environment(env):
         return bool(env)
 
 
-def fetch_aphia(lsid):
+def fetch_aphia(lsid, cache=None):
     """Fetch the Aphia record and classification for an AphiaID."""
+    if cache is not None:
+        aphia_info = cache.fetch(lsid)
+        if aphia_info is not None:
+            # cache has result, return
+            return aphia_info
+    # no cache or no cache result
     record = pyworms.aphiaRecordByAphiaID(lsid)
     classification = pyworms.aphiaClassificationByAphiaID(lsid)
     aphia_info = {
         "record": record,
         "classification": classification
     }
+    if cache is not None:
+        # cache did not have this info, storing it now
+        cache.store(lsid, aphia_info)
     logger.debug(aphia_info)
     return aphia_info
 
 
-def fetch(taxa):
+def fetch(taxa, cache=None):
     """Fetch Aphia info from WoRMS, including alternative."""
 
     for key, taxon in taxa.items():
         if "lsid" in taxon and taxon["lsid"] is not None:
             lsid = taxon["lsid"]
-            aphia_info = fetch_aphia(lsid)
+            aphia_info = fetch_aphia(lsid, cache)
             if aphia_info["record"] is None or aphia_info["classification"] is None:
                 pass
             else:
@@ -115,7 +123,7 @@ def fetch(taxa):
 
                     # alternative provided
 
-                    aphia_info_accepted = fetch_aphia(taxon["aphia_info"]["record"]["valid_AphiaID"])
+                    aphia_info_accepted = fetch_aphia(taxon["aphia_info"]["record"]["valid_AphiaID"], cache)
                     if aphia_info_accepted["record"] is None or aphia_info_accepted["classification"] is None:
                         pass
                     else:

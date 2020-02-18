@@ -1,7 +1,7 @@
 from .util import aphia
 
 
-def check(records):
+def check(records, cache=None):
 
     # first map all input rows to sets of taxonomic information (scientificName and scientificNameID)
 
@@ -32,7 +32,7 @@ def check(records):
 
     # submit all sets of taxonomic information to the aphia component
 
-    aphia.check(taxa)
+    aphia.check(taxa, cache)
 
     # map back to qc results structure
 
