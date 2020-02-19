@@ -16,6 +16,17 @@ def check_record(record):
         "dropped": False
     }
 
+    # coordinate uncertainty
+
+    if "coordinateUncertaintyInMeters" in record:
+        unc_check = misc.check_float(record["coordinateUncertaintyInMeters"], [0, 10000000])
+        if not unc_check["valid"]:
+            result["invalid"].append("coordinateUncertaintyInMeters")
+        else:
+            result["annotations"]["coordinateUncertaintyInMeters"] = unc_check["float"]
+    else:
+        result["missing"].append("coordinateUncertaintyInMeters")
+
     # coordinates
 
     if "decimalLongitude" in record:

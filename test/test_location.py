@@ -73,6 +73,16 @@ class TestLocation(unittest.TestCase):
         self.assertIn(Flag.ZERO_COORD.value, results[0]["flags"])
         self.assertNotIn(Flag.ZERO_COORD.value, results[1]["flags"])
 
+    def test_uncertainty(self):
+        records = [
+            { "id": 0, "coordinateUncertaintyInMeters": 100, "decimalLongitude": 1, "decimalLatitude": 0 },
+            { "id": 1, "decimalLongitude": 1, "decimalLatitude": 0 }
+        ]
+        results = location.check(records)
+        self.assertNotIn("coordinateUncertaintyInMeters", results[0]["missing"])
+        self.assertTrue(results[0]["annotations"]["coordinateUncertaintyInMeters"] == 100)
+        self.assertIn("coordinateUncertaintyInMeters", results[1]["missing"])
+
     def test_depth_parsing(self):
         records = [
             { "id": 0, "minimumDepthInMeters": "2", "maximumDepthInMeters": "10" },
