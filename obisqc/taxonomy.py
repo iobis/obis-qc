@@ -17,7 +17,7 @@ def check(records, cache=None):
                 "ids": [ record_id ],
                 "scientificName": record["scientificName"] if "scientificName" in record else None,
                 "scientificNameID": record["scientificNameID"] if "scientificNameID" in record else None,
-                "lsid": None,
+                "aphiaid": None,
                 "missing": [],
                 "invalid": [],
                 "flags": [],

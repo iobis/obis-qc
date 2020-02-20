@@ -8,3 +8,4 @@ class Status(Enum):
     UNCERTAIN = "uncertain"
     TAXON_INQUIRENDUM = "taxon inquirendum"
     INTERIM_UNPUBLISHED = "interim unpublished"
+    TEMPORARY_NAME = "temporary name"

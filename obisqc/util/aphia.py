@@ -30,11 +30,11 @@ def detect_lsid(taxa):
     """Check if scientificNameID is present and parse LSID to Aphia ID."""
     for key, taxon in taxa.items():
         if "scientificNameID" in taxon and taxon["scientificNameID"] is not None:
-            lsid = pyworms.parseLSID(taxon["scientificNameID"])
-            if lsid is None:
+            aphiaid = pyworms.parseLSID(taxon["scientificNameID"])
+            if aphiaid is None:
                 taxon["invalid"].append("scientificNameID")
             else:
-                taxon["lsid"] = lsid
+                taxon["aphiaid"] = aphiaid
 
 
 def match_worms(taxa, cache=None):
@@ -46,10 +46,10 @@ def match_worms(taxa, cache=None):
     names = []
     keys = []
     for key in allkeys:
-        if taxa[key]["lsid"] is None and "scientificName" in taxa[key] and taxa[key]["scientificName"] is not None:
+        if taxa[key]["aphiaid"] is None and "scientificName" in taxa[key] and taxa[key]["scientificName"] is not None:
             name = taxa[key]["scientificName"]
             if name in match_cache:
-                taxa[key]["lsid"] = match_cache[name]
+                taxa[key]["aphiaid"] = match_cache[name]
             else:
                 keys.append(key)
                 names.append(name)
@@ -60,13 +60,13 @@ def match_worms(taxa, cache=None):
         allmatches = pyworms.aphiaRecordsByMatchNames(names, False)
         assert (len(allmatches) == len(names))
         for i in range(0, len(allmatches)):
-            lsid = None
+            aphiaid = None
             matches = list(filter(lambda m: "status" in m and m["status"] != "uncertain", allmatches[i]))
             if matches is not None and len(matches) == 1:
                 if matches[0]["match_type"] == "exact" or matches[0]["match_type"] == "exact_subgenus":
-                    lsid = matches[0]["AphiaID"]
-            taxa[keys[i]]["lsid"] = lsid
-            match_cache[names[i]] = lsid
+                    aphiaid = matches[0]["AphiaID"]
+            taxa[keys[i]]["aphiaid"] = aphiaid
+            match_cache[names[i]] = aphiaid
 
 
 def has_alternative(aphia_info):
@@ -87,23 +87,23 @@ def convert_environment(env):
         return bool(env)
 
 
-def fetch_aphia(lsid, cache=None):
+def fetch_aphia(aphiaid, cache=None):
     """Fetch the Aphia record and classification for an AphiaID."""
     if cache is not None:
-        aphia_info = cache.fetch(lsid)
+        aphia_info = cache.fetch(aphiaid)
         if aphia_info is not None:
             # cache has result, return
             return aphia_info
     # no cache or no cache result
-    record = pyworms.aphiaRecordByAphiaID(lsid)
-    classification = pyworms.aphiaClassificationByAphiaID(lsid)
+    record = pyworms.aphiaRecordByAphiaID(aphiaid)
+    classification = pyworms.aphiaClassificationByAphiaID(aphiaid)
     aphia_info = {
         "record": record,
         "classification": classification
     }
     if cache is not None:
         # cache did not have this info, storing it now
-        cache.store(lsid, aphia_info)
+        cache.store(aphiaid, aphia_info)
     logger.debug(aphia_info)
     return aphia_info
 
@@ -112,9 +112,9 @@ def fetch(taxa, cache=None):
     """Fetch Aphia info from WoRMS, including alternative."""
 
     for key, taxon in taxa.items():
-        if "lsid" in taxon and taxon["lsid"] is not None:
-            lsid = taxon["lsid"]
-            aphia_info = fetch_aphia(lsid, cache)
+        if "aphiaid" in taxon and taxon["aphiaid"] is not None:
+            aphiaid = taxon["aphiaid"]
+            aphia_info = fetch_aphia(aphiaid, cache)
             if aphia_info["record"] is None or aphia_info["classification"] is None:
                 pass
             else:
@@ -181,7 +181,8 @@ def process_info(taxa):
                         Status.UNACCEPTED.value,
                         Status.NOMEN_DUBIUM.value,
                         Status.TAXON_INQUIRENDUM.value,
-                        Status.INTERIM_UNPUBLISHED.value
+                        Status.INTERIM_UNPUBLISHED.value,
+                        Status.TEMPORARY_NAME.value
                     ]:
                         taxon["dropped"] = False
                     else:

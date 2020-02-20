@@ -142,6 +142,6 @@ def check(records, xylookup=False):
             if xy[i] is not None:
                 check_xy(results[i], xy[i])
             else:
-                logger.warning("No xylookup result for %s") % results[i]["id"]
+                logger.warning("No xylookup result for %s" % results[i]["id"])
 
     return results

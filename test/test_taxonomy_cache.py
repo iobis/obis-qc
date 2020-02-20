@@ -8,10 +8,10 @@ logging.getLogger("obisqc.util.aphia").setLevel(logging.INFO)
 
 
 class DummyCache:
-    def store(self, lsid, aphia_info):
+    def store(self, aphiaid, aphia_info):
         pass
-    def fetch(self, lsid):
-        if str(lsid) == "141433":
+    def fetch(self, aphiaid):
+        if str(aphiaid) == "141433":
             return {
                 "record": {
                     "AphiaID": 141433,
