@@ -12,7 +12,7 @@ class TestTaxonomy(unittest.TestCase):
 
     def test_annotations(self):
         records = [
-            { "id": 0, "scientificName": "Flagellata indeterminata" },
+            { "id": 0, "scientificName": "Brachiolaria" },
             { "id": 1, "scientificName": "Cercocebus sanjei" },
             { "id": 2, "scientificName": "**non-current code** ??" }
         ]
