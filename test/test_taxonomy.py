@@ -13,7 +13,7 @@ class TestTaxonomy(unittest.TestCase):
     def test_annotations(self):
         records = [
             { "id": 0, "scientificName": "Flagellata indeterminata" },
-            { "id": 1, "scientificName": "Polynoida" },
+            { "id": 1, "scientificName": "Cercocebus sanjei" },
             { "id": 2, "scientificName": "**non-current code** ??" }
         ]
         results = taxonomy.check(records)
