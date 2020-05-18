@@ -10,6 +10,17 @@ logging.getLogger("obisqc.util.aphia").setLevel(logging.INFO)
 
 class TestTaxonomy(unittest.TestCase):
 
+    def test_annotations(self):
+        records = [
+            { "id": 0, "scientificName": "Flagellata indeterminata" },
+            { "id": 1, "scientificName": "Polynoida" },
+            { "id": 2, "scientificName": "**non-current code** ??" }
+        ]
+        results = taxonomy.check(records)
+        self.assertIn(Flag.WORMS_ANNOTATION_REJECT_GROUPING.value, results[0]["flags"])
+        self.assertIn(Flag.WORMS_ANNOTATION_REJECT_HABITAT.value, results[1]["flags"])
+        self.assertIn(Flag.WORMS_ANNOTATION_NO_BIOTA.value, results[2]["flags"])
+
     def test_name_valid(self):
         records = [
             { "id": 0, "scientificName": "Abra alba" }

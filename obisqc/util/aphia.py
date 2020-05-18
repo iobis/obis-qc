@@ -1,5 +1,6 @@
 import pyworms
 import logging
+import requests
 from .flags import Flag
 from .status import Status
 logger = logging.getLogger(__name__)
@@ -13,6 +14,7 @@ def check(taxa, cache=None):
     check_fields(taxa)
     detect_lsid(taxa)
     match_worms(taxa, cache)
+    check_blacklist(taxa)
     fetch(taxa, cache)
     process_info(taxa)
 
@@ -35,6 +37,30 @@ def detect_lsid(taxa):
                 taxon["invalid"].append("scientificNameID")
             else:
                 taxon["aphiaid"] = aphiaid
+
+
+def check_blacklist(taxa):
+    for key, taxon in taxa.items():
+        if "scientificName" in taxon and taxon["scientificName"] is not None and "aphiaid" in taxon and taxon["aphiaid"] is None:
+            response = requests.get("https://api.obis.org/taxon/annotations?scientificname=%s" % taxon["scientificName"])
+            if response.status_code == 200:
+                data = response.json()
+                if "results" in data and len(data["results"]) > 0 and "annotation_type" in data["results"][0]:
+                    annotation_type = data["results"][0]["annotation_type"]
+                    if annotation_type == "black (no biota)": taxon["flags"].append(Flag.WORMS_ANNOTATION_NO_BIOTA.value)
+                    if annotation_type == "black (unresolvable, looks like a scientific name)": taxon["flags"].append(Flag.WORMS_ANNOTATION_UNRESOLVABLE.value)
+                    if annotation_type == "grey/reject habitat": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_HABITAT.value)
+                    if annotation_type == "grey/reject species grouping": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_GROUPING.value)
+                    if annotation_type == "grey/reject ambiguous": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_AMBIGUOUS.value)
+                    if annotation_type == "grey/reject fossil": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_FOSSIL.value)
+                    if annotation_type == "white/typo: resolvable to AphiaID": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_TYPO.value)
+                    if annotation_type == "white/exact match, authority included": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_AUTHORITY.value)
+                    if annotation_type == "white/unpublished combination: resolvable to AphiaID": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_UNPUBLISHED.value)
+                    if annotation_type == "white/human intervention, resolvable to AphiaID": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_HUMAN.value)
+                    if annotation_type == "white/human intervention, loss of info, resolvable to AphiaID": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_LOSS.value)
+                    if annotation_type == "blue/awaiting editor feedback": taxon["flags"].append(Flag.WORMS_ANNOTATION_AWAIT_EDITOR.value)
+                    if annotation_type == "blue/awaiting provider feedback": taxon["flags"].append(Flag.WORMS_ANNOTATION_AWAIT_PROVIDER.value)
+                    if annotation_type == "blue/DMT to process": taxon["flags"].append(Flag.WORMS_ANNOTATION_TODO.value)
 
 
 def match_worms(taxa, cache=None):
