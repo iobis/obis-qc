@@ -227,5 +227,5 @@ def process_info(taxa):
             if taxon["marine"] is False and taxon["brackish"] is False:
                 taxon["flags"].append(Flag.NOT_MARINE.value)
                 taxon["dropped"] = True
-            elif taxon["marine"] is None or taxon["marine"] is None:
+            elif taxon["marine"] is not True and taxon["brackish"] is not True:
                 taxon["flags"].append(Flag.MARINE_UNSURE.value)
