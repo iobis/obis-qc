@@ -180,6 +180,19 @@ class TestTaxonomy(unittest.TestCase):
         self.assertIn(Flag.MARINE_UNSURE.value, results[0]["flags"])
         self.assertTrue(results[0]["annotations"]["aphia"] == 835694)
 
+    def test_uncertain_2(self):
+        records = [
+            { "id": 0, "scientificName": "Dactyliosolen flexuosus" }
+        ]
+        results = taxonomy.check(records)
+        self.assertNotIn("scientificName", results[0]["missing"])
+        self.assertIn("scientificNameID", results[0]["missing"])
+        self.assertFalse(results[0]["dropped"])
+        self.assertNotIn(Flag.NO_MATCH.value, results[0]["flags"])
+        self.assertIn(Flag.NO_ACCEPTED_NAME.value, results[0]["flags"])
+        self.assertNotIn(Flag.MARINE_UNSURE.value, results[0]["flags"])
+        self.assertTrue(results[0]["annotations"]["aphia"] == 637279)
+
     def test_nomen_dubium(self):
         records = [
             { "id": 0, "scientificNameID": "urn:lsid:marinespecies.org:taxname:130270", "scientificName": "Magelona minuta" }
