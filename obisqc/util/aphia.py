@@ -209,7 +209,9 @@ def process_info(taxa):
                         Status.NOMEN_DUBIUM.value,
                         Status.TAXON_INQUIRENDUM.value,
                         Status.INTERIM_UNPUBLISHED.value,
-                        Status.TEMPORARY_NAME.value
+                        Status.TEMPORARY_NAME.value,
+                        Status.DELETED.value,
+                        Status.QUARANTINED.value
                     ]:
                         taxon["dropped"] = False
                     else:

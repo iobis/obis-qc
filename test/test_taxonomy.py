@@ -193,6 +193,19 @@ class TestTaxonomy(unittest.TestCase):
         self.assertNotIn(Flag.MARINE_UNSURE.value, results[0]["flags"])
         self.assertTrue(results[0]["annotations"]["aphia"] == 637279)
 
+    def test_unaccepted(self):
+        records = [
+            { "id": 0, "scientificName": "Dactyliosolen flexuosus" }
+        ]
+        results = taxonomy.check(records)
+        self.assertNotIn("scientificName", results[0]["missing"])
+        self.assertIn("scientificNameID", results[0]["missing"])
+        self.assertFalse(results[0]["dropped"])
+        self.assertNotIn(Flag.NO_MATCH.value, results[0]["flags"])
+        self.assertIn(Flag.NO_ACCEPTED_NAME.value, results[0]["flags"])
+        self.assertNotIn(Flag.MARINE_UNSURE.value, results[0]["flags"])
+        self.assertTrue(results[0]["annotations"]["aphia"] == 637279)
+
     def test_nomen_dubium(self):
         records = [
             { "id": 0, "scientificNameID": "urn:lsid:marinespecies.org:taxname:130270", "scientificName": "Magelona minuta" }
@@ -227,6 +240,28 @@ class TestTaxonomy(unittest.TestCase):
         self.assertNotIn(Flag.NO_MATCH.value, results[0]["flags"])
         self.assertIn(Flag.NO_ACCEPTED_NAME.value, results[0]["flags"])
         self.assertTrue(results[0]["annotations"]["aphia"] == 1057043)
+
+    def test_interim_quarantined(self):
+        records = [
+            { "id": 0, "scientificNameID": "urn:lsid:marinespecies.org:taxname:493822" }
+        ]
+        results = taxonomy.check(records)
+        self.assertNotIn("scientificNameID", results[0]["missing"])
+        self.assertFalse(results[0]["dropped"])
+        self.assertNotIn(Flag.NO_MATCH.value, results[0]["flags"])
+        self.assertIn(Flag.NO_ACCEPTED_NAME.value, results[0]["flags"])
+        self.assertTrue(results[0]["annotations"]["aphia"] == 493822)
+
+    def test_interim_deleted(self):
+        records = [
+            { "id": 0, "scientificNameID": "urn:lsid:marinespecies.org:taxname:22747" }
+        ]
+        results = taxonomy.check(records)
+        self.assertNotIn("scientificNameID", results[0]["missing"])
+        self.assertFalse(results[0]["dropped"])
+        self.assertNotIn(Flag.NO_MATCH.value, results[0]["flags"])
+        self.assertIn(Flag.NO_ACCEPTED_NAME.value, results[0]["flags"])
+        self.assertTrue(results[0]["annotations"]["aphia"] == 22747)
 
 
 if __name__ == "__main__":
