@@ -100,7 +100,8 @@ class TestLocation(unittest.TestCase):
         records = [
             { "id": 0, "decimalLongitude": 2.1, "decimalLatitude": 51.3, "minimumDepthInMeters": 1000 },
             { "id": 1, "decimalLongitude": 2.1, "decimalLatitude": 51.3, "minimumDepthInMeters": 10 },
-            { "id": 2, "decimalLongitude": 2.1, "decimalLatitude": 51.3, "minimumDepthInMeters": 10, "maximumDepthInMeters": 1000 }
+            { "id": 2, "decimalLongitude": 2.1, "decimalLatitude": 51.3, "minimumDepthInMeters": 10, "maximumDepthInMeters": 1000 },
+            {"id": 1, "decimalLongitude": 2.1, "decimalLatitude": 51.3, "minimumDepthInMeters": -10}
         ]
         results = location.check(records, xylookup=True)
         self.assertEqual(results[0]["annotations"]["minimumDepthInMeters"], 1000)
@@ -112,6 +113,9 @@ class TestLocation(unittest.TestCase):
         self.assertEqual(results[2]["annotations"]["minimumDepthInMeters"], 10)
         self.assertNotIn(Flag.NO_DEPTH.value, results[2]["flags"])
         self.assertIn(Flag.DEPTH_EXCEEDS_BATH.value, results[2]["flags"])
+        self.assertEqual(results[3]["annotations"]["minimumDepthInMeters"], -10)
+        self.assertNotIn(Flag.NO_DEPTH.value, results[3]["flags"])
+        self.assertNotIn(Flag.DEPTH_EXCEEDS_BATH.value, results[3]["flags"])
 
     def test_depth_min_max(self):
         records = [

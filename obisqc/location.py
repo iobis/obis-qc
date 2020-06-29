@@ -99,13 +99,20 @@ def check_xy(result, xy):
 
     # depth
 
+    intercept = 50
+    slope = 1.1
+
     depth_exceeds_bath = False
-    if "minimumDepthInMeters" in result["annotations"] and "bathymetry" in xy["grids"]:
-        if result["annotations"]["minimumDepthInMeters"] > xy["grids"]["bathymetry"]:
-            depth_exceeds_bath = True
-    if "maximumDepthInMeters" in result["annotations"] and "bathymetry" in xy["grids"]:
-        if result["annotations"]["maximumDepthInMeters"] > xy["grids"]["bathymetry"]:
-            depth_exceeds_bath = True
+
+    for depth_field in ["minimumDepthInMeters", "maximumDepthInMeters"]:
+        if depth_field in result["annotations"] and "bathymetry" in xy["grids"]:
+            if xy["grids"]["bathymetry"] < 0:
+                if result["annotations"][depth_field] > intercept + xy["grids"]["bathymetry"]:
+                    depth_exceeds_bath = True
+            else:
+                if result["annotations"][depth_field] > intercept + xy["grids"]["bathymetry"] * slope:
+                    depth_exceeds_bath = True
+
     if depth_exceeds_bath:
         result["flags"].append(Flag.DEPTH_EXCEEDS_BATH.value)
 
