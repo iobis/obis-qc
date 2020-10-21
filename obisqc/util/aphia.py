@@ -32,7 +32,7 @@ def detect_lsid(taxa):
     """Check if scientificNameID is present and parse LSID to Aphia ID."""
     for key, taxon in taxa.items():
         if "scientificNameID" in taxon and taxon["scientificNameID"] is not None:
-            aphiaid = pyworms.parseLSID(taxon["scientificNameID"])
+            aphiaid = pyworms.parse_lsid(taxon["scientificNameID"])
             if aphiaid is None:
                 taxon["invalid"].append("scientificNameID")
             else:
@@ -122,11 +122,20 @@ def fetch_aphia(aphiaid, cache=None):
             # cache has result, return
             return aphia_info
     # no cache or no cache result
+
     record = pyworms.aphiaRecordByAphiaID(aphiaid)
     classification = pyworms.aphiaClassificationByAphiaID(aphiaid)
+    bold_id = pyworms.aphiaExternalIDByAphiaID(aphiaid, "bold")
+    ncbi_id = pyworms.aphiaExternalIDByAphiaID(aphiaid, "ncbi")
+    distribution = pyworms.aphiaDistributionsByAphiaID(aphiaid)
+    bold_id = bold_id[0] if bold_id is not None and isinstance(bold_id, list) and len(bold_id) > 0 else None
+    ncbi_id = ncbi_id[0] if ncbi_id is not None and isinstance(ncbi_id, list) and len(ncbi_id) > 0 else None
     aphia_info = {
         "record": record,
-        "classification": classification
+        "classification": classification,
+        "bold_id": bold_id,
+        "ncbi_id": ncbi_id,
+        "distribution": distribution
     }
     if cache is not None:
         # cache did not have this info, storing it now
