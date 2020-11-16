@@ -66,7 +66,7 @@ def check_record(record):
         min_check = misc.check_float(record["minimumDepthInMeters"], [-100000, 11000])
         if not min_check["valid"]:
             result["invalid"].append("minimumDepthInMeters")
-            if not min_check["in_range"]:
+            if min_check["in_range"] is False:
                 result["flags"].append(Flag.DEPTH_OUT_OF_RANGE.value)
         else:
             result["annotations"]["minimumDepthInMeters"] = min_check["float"]
@@ -77,7 +77,7 @@ def check_record(record):
         max_check = misc.check_float(record["maximumDepthInMeters"], [-100000, 11000])
         if not max_check["valid"]:
             result["invalid"].append("maximumDepthInMeters")
-            if not max_check["in_range"]:
+            if max_check["in_range"] is False:
                 result["flags"].append(Flag.DEPTH_OUT_OF_RANGE.value)
         else:
             result["annotations"]["maximumDepthInMeters"] = max_check["float"]

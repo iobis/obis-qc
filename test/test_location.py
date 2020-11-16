@@ -134,10 +134,21 @@ class TestLocation(unittest.TestCase):
         results = location.check(records)
         self.assertNotIn("minimumDepthInMeters", results[0]["annotations"])
         self.assertNotIn("maximumDepthInMeters", results[0]["annotations"])
-        self.assertIn(Flag.NO_DEPTH.value
-                      , results[0]["flags"])
+        self.assertIn(Flag.NO_DEPTH.value, results[0]["flags"])
         self.assertIn(Flag.DEPTH_OUT_OF_RANGE.value, results[0]["flags"])
         self.assertIn(Flag.DEPTH_OUT_OF_RANGE.value, results[0]["flags"])
+        self.assertIn("minimumDepthInMeters", results[0]["invalid"])
+        self.assertIn("maximumDepthInMeters", results[0]["invalid"])
+
+    def test_depth_out_of_range_invalid(self):
+        records = [
+            { "id": 0, "minimumDepthInMeters": "NA" }
+        ]
+        results = location.check(records)
+        self.assertNotIn("minimumDepthInMeters", results[0]["annotations"])
+        self.assertIn(Flag.NO_DEPTH.value, results[0]["flags"])
+        self.assertNotIn(Flag.DEPTH_OUT_OF_RANGE.value, results[0]["flags"])
+        self.assertIn("minimumDepthInMeters", results[0]["invalid"])
 
     def test_shoredistance(self):
         records = [
