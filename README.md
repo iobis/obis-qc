@@ -1,13 +1,36 @@
 ![tests](https://github.com/iobis/obis-qc/workflows/tests/badge.svg)
 
 # obis-qc
-### Install
+### Installation
 
 ```
-pip install git+https://github.com/iobis/isodateparser.git
-pip install git+https://github.com/iobis/pyxylookup.git
-pip install git+https://github.com/iobis/pyworms.git
+pip install -r requirements.txt
 python setup.py install
+```
+
+### Usage
+
+See [tests](https://github.com/iobis/obis-qc/tree/master/test).
+
+#### Using a cache to speed up taxonomy checks
+
+By default the taxonomy component fetches information from WoRMS the WoRMS API by AphiaID. If you have a local cache of WoRMS information, you can use that instead of the API connection by providing an object that implements the `fetch()` and `store()` methods. The WoRMS information objects provided to the cache are constructed like this:
+
+```python
+record = pyworms.aphiaRecordByAphiaID(aphiaid)
+classification = pyworms.aphiaClassificationByAphiaID(aphiaid)
+bold_id = pyworms.aphiaExternalIDByAphiaID(aphiaid, "bold")
+ncbi_id = pyworms.aphiaExternalIDByAphiaID(aphiaid, "ncbi")
+distribution = pyworms.aphiaDistributionsByAphiaID(aphiaid)
+bold_id = bold_id[0] if bold_id is not None and isinstance(bold_id, list) and len(bold_id) > 0 else None
+ncbi_id = ncbi_id[0] if ncbi_id is not None and isinstance(ncbi_id, list) and len(ncbi_id) > 0 else None
+aphia_info = {
+    "record": record,
+    "classification": classification,
+    "bold_id": bold_id,
+    "ncbi_id": ncbi_id,
+    "distribution": distribution
+}
 ```
 
 ### Run tests
