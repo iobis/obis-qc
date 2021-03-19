@@ -34,7 +34,7 @@ class TestTaxonomyCache(unittest.TestCase):
 
     def test_cache(self):
         records = [
-            { "id": 0, "scientificNameID": "urn:lsid:marinespecies.org:taxname:141433" }
+            {"scientificNameID": "urn:lsid:marinespecies.org:taxname:141433"}
         ]
 
         results_nocache = taxonomy.check(records)

@@ -1,6 +1,6 @@
-from .util import misc
+from obisqc.util import misc
 import logging
-from .util.flags import Flag
+from obisqc.util.flags import Flag
 logger = logging.getLogger(__name__)
 
 
@@ -8,7 +8,6 @@ def check_record(record):
     """Check location related fields."""
 
     result = {
-        "id": record["id"],
         "missing": [],
         "invalid": [],
         "flags": [],

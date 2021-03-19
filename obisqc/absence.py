@@ -1,4 +1,4 @@
-from . util import misc
+from obisqc.util import misc
 import logging
 logger = logging.getLogger(__name__)
 
@@ -7,7 +7,6 @@ def check_record(record):
     """Check is a record is an absence record."""
 
     result = {
-        "id": record["id"],
         "missing": [],
         "invalid": [],
         "flags": [],

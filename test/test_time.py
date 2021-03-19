@@ -7,9 +7,9 @@ class TestTime(unittest.TestCase):
 
     def test_time_parsing(self):
         records = [
-            { "id": 1, "eventDate": "1970-01-01T00:00:00" },
-            { "id": 2, "eventDate": "1971-01-01T00:00:00" },
-            { "id": 3, "eventDate": "1970-01-01T00:00:00/1971-01-01T00:00:00" }
+            {"eventDate": "1970-01-01T00:00:00"},
+            {"eventDate": "1971-01-01T00:00:00"},
+            {"eventDate": "1970-01-01T00:00:00/1971-01-01T00:00:00"}
         ]
         results = time.check(records)
         self.assertEqual(results[0]["annotations"]["date_start"], 0)
@@ -24,7 +24,7 @@ class TestTime(unittest.TestCase):
 
     def test_min_date(self):
         records = [
-            { "id": 1, "eventDate": "1870-01-01T00:00:00" }
+            {"eventDate": "1870-01-01T00:00:00"}
         ]
         results = time.check(records, min_year=1900)
         self.assertNotIn("date_start", results[0]["annotations"])
@@ -34,7 +34,7 @@ class TestTime(unittest.TestCase):
 
     def test_future_date(self):
         records = [
-            { "id": 1, "eventDate": "2300-01-01T00:00:00" }
+            {"eventDate": "2300-01-01T00:00:00"}
         ]
         results = time.check(records)
         self.assertNotIn("date_start", results[0]["annotations"])
@@ -44,7 +44,7 @@ class TestTime(unittest.TestCase):
 
     def test_invalid_date_format(self):
         records = [
-            { "id": 1, "eventDate": "12 January 1928" }
+            {"eventDate": "12 January 1928"}
         ]
         results = time.check(records)
         self.assertIn("eventDate", results[0]["invalid"])
@@ -52,7 +52,7 @@ class TestTime(unittest.TestCase):
 
     def test_missing_date(self):
         records = [
-            { "id": 1 }
+            {}
         ]
         results = time.check(records)
         self.assertIn("eventDate", results[0]["missing"])

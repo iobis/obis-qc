@@ -6,10 +6,10 @@ class TestFields(unittest.TestCase):
 
     def test_basisofrecord(self):
         records = [
-            { "id": 0 },
-            { "id": 1, "basisOfRecord": "HumanObservation" },
-            { "id": 2, "basisOfRecord": "humanobservation" },
-            { "id": 3, "basisOfRecord": "human observation" }
+            {},
+            {"basisOfRecord": "HumanObservation"},
+            {"basisOfRecord": "humanobservation"},
+            {"basisOfRecord": "human observation"}
         ]
         results = fields.check(records)
         self.assertIn("basisOfRecord", results[0]["missing"])

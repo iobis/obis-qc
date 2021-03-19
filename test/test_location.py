@@ -7,8 +7,8 @@ class TestLocation(unittest.TestCase):
 
     def test_location_parsing(self):
         records = [
-            { "id": 0, "decimalLongitude": "2.1", "decimalLatitude": "51.3" },
-            { "id": 1, "decimalLongitude": 2.1, "decimalLatitude": 51.3 }
+            {"decimalLongitude": "2.1", "decimalLatitude": "51.3"},
+            {"decimalLongitude": 2.1, "decimalLatitude": 51.3}
         ]
         results = location.check(records)
         self.assertEqual(results[0]["annotations"]["decimalLongitude"], 2.1)
@@ -22,9 +22,9 @@ class TestLocation(unittest.TestCase):
 
     def test_missing_coordinates(self):
         records = [
-            { "id": 0, "decimalLatitude": 51.3 },
-            { "id": 1, "decimalLongitude": 2.1 },
-            { "id": 2 }
+            {"decimalLatitude": 51.3},
+            {"decimalLongitude": 2.1},
+            {}
         ]
         results = location.check(records)
         self.assertEqual(results[0]["annotations"]["decimalLatitude"], 51.3)
@@ -42,7 +42,7 @@ class TestLocation(unittest.TestCase):
 
     def test_invalid_coordinates(self):
         records = [
-            { "id": 0, "decimalLongitude": 2.1, "decimalLatitude": "abc" }
+            {"decimalLongitude": 2.1, "decimalLatitude": "abc"}
         ]
         results = location.check(records)
         self.assertEqual(results[0]["annotations"]["decimalLongitude"], 2.1)
@@ -52,7 +52,7 @@ class TestLocation(unittest.TestCase):
 
     def test_coordinates_out_of_range(self):
         records = [
-            { "id": 0, "decimalLongitude": -200, "decimalLatitude": 100 }
+            {"decimalLongitude": -200, "decimalLatitude": 100}
         ]
         results = location.check(records)
         self.assertNotIn("decimalLongitude", results[0]["annotations"])
@@ -66,8 +66,8 @@ class TestLocation(unittest.TestCase):
 
     def test_zero_coordinates(self):
         records = [
-            { "id": 0, "decimalLongitude": 0, "decimalLatitude": 0 },
-            { "id": 1, "decimalLongitude": 1, "decimalLatitude": 0 }
+            {"decimalLongitude": 0, "decimalLatitude": 0},
+            {"decimalLongitude": 1, "decimalLatitude": 0}
         ]
         results = location.check(records)
         self.assertIn(Flag.ZERO_COORD.value, results[0]["flags"])
@@ -75,8 +75,8 @@ class TestLocation(unittest.TestCase):
 
     def test_uncertainty(self):
         records = [
-            { "id": 0, "coordinateUncertaintyInMeters": 100, "decimalLongitude": 1, "decimalLatitude": 0 },
-            { "id": 1, "decimalLongitude": 1, "decimalLatitude": 0 }
+            {"coordinateUncertaintyInMeters": 100, "decimalLongitude": 1, "decimalLatitude": 0},
+            {"decimalLongitude": 1, "decimalLatitude": 0}
         ]
         results = location.check(records)
         self.assertNotIn("coordinateUncertaintyInMeters", results[0]["missing"])
@@ -85,8 +85,8 @@ class TestLocation(unittest.TestCase):
 
     def test_depth_parsing(self):
         records = [
-            { "id": 0, "minimumDepthInMeters": "2", "maximumDepthInMeters": "10" },
-            { "id": 1, "minimumDepthInMeters": 2, "maximumDepthInMeters": 10 }
+            {"minimumDepthInMeters": "2", "maximumDepthInMeters": "10"},
+            {"minimumDepthInMeters": 2, "maximumDepthInMeters": 10}
         ]
         results = location.check(records)
         self.assertEqual(results[0]["annotations"]["minimumDepthInMeters"], 2)
@@ -98,10 +98,10 @@ class TestLocation(unittest.TestCase):
 
     def test_depth_exceeds_bath(self):
         records = [
-            { "id": 0, "decimalLongitude": 2.1, "decimalLatitude": 51.3, "minimumDepthInMeters": 1000 },
-            { "id": 1, "decimalLongitude": 2.1, "decimalLatitude": 51.3, "minimumDepthInMeters": 10 },
-            { "id": 2, "decimalLongitude": 2.1, "decimalLatitude": 51.3, "minimumDepthInMeters": 10, "maximumDepthInMeters": 1000 },
-            {"id": 1, "decimalLongitude": 2.1, "decimalLatitude": 51.3, "minimumDepthInMeters": -10}
+            {"decimalLongitude": 2.1, "decimalLatitude": 51.3, "minimumDepthInMeters": 1000},
+            {"decimalLongitude": 2.1, "decimalLatitude": 51.3, "minimumDepthInMeters": 10},
+            {"decimalLongitude": 2.1, "decimalLatitude": 51.3, "minimumDepthInMeters": 10, "maximumDepthInMeters": 1000},
+            {"decimalLongitude": 2.1, "decimalLatitude": 51.3, "minimumDepthInMeters": -10}
         ]
         results = location.check(records, xylookup=True)
         self.assertEqual(results[0]["annotations"]["minimumDepthInMeters"], 1000)
@@ -119,7 +119,7 @@ class TestLocation(unittest.TestCase):
 
     def test_depth_min_max(self):
         records = [
-            { "id": 0, "minimumDepthInMeters": 10, "maximumDepthInMeters": 2 }
+            {"minimumDepthInMeters": 10, "maximumDepthInMeters": 2}
         ]
         results = location.check(records)
         self.assertEqual(results[0]["annotations"]["minimumDepthInMeters"], 10)
@@ -129,7 +129,7 @@ class TestLocation(unittest.TestCase):
 
     def test_depth_out_of_range(self):
         records = [
-            { "id": 0, "minimumDepthInMeters": 12000, "maximumDepthInMeters": 12000 }
+            {"minimumDepthInMeters": 12000, "maximumDepthInMeters": 12000}
         ]
         results = location.check(records)
         self.assertNotIn("minimumDepthInMeters", results[0]["annotations"])
@@ -142,7 +142,7 @@ class TestLocation(unittest.TestCase):
 
     def test_depth_out_of_range_invalid(self):
         records = [
-            { "id": 0, "minimumDepthInMeters": "NA" }
+            {"minimumDepthInMeters": "NA"}
         ]
         results = location.check(records)
         self.assertNotIn("minimumDepthInMeters", results[0]["annotations"])
@@ -152,8 +152,8 @@ class TestLocation(unittest.TestCase):
 
     def test_shoredistance(self):
         records = [
-            { "id": 0, "decimalLongitude": 2.1, "decimalLatitude": 51.3 },
-            { "id": 0, "decimalLongitude": 7.3, "decimalLatitude": 50.3 }
+            {"decimalLongitude": 2.1, "decimalLatitude": 51.3},
+            {"decimalLongitude": 7.3, "decimalLatitude": 50.3}
         ]
         results = location.check(records, xylookup=True)
         self.assertIn("shoredistance", results[0]["annotations"])
@@ -164,8 +164,8 @@ class TestLocation(unittest.TestCase):
 
     def test_areas(self):
         records = [
-            { "id": 0, "decimalLongitude": 2.1, "decimalLatitude": 51.3 },
-            { "id": 0, "decimalLongitude": 7.3, "decimalLatitude": 50.3 }
+            {"decimalLongitude": 2.1, "decimalLatitude": 51.3},
+            {"decimalLongitude": 7.3, "decimalLatitude": 50.3}
         ]
         results = location.check(records, xylookup=True)
         self.assertTrue(len(results[0]["annotations"]["areas"]) > 0)
@@ -173,7 +173,7 @@ class TestLocation(unittest.TestCase):
 
     def test_grids(self):
         records = [
-            {"id": 0, "decimalLongitude": 2.1, "decimalLatitude": 51.3}
+            {"decimalLongitude": 2.1, "decimalLatitude": 51.3}
         ]
         results = location.check(records, xylookup=True)
         self.assertIn("bathymetry", results[0]["annotations"])

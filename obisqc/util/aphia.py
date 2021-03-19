@@ -1,8 +1,8 @@
 import pyworms
 import logging
 import requests
-from .flags import Flag
-from .status import Status
+from obisqc.util.flags import Flag
+from obisqc.util.status import Status
 logger = logging.getLogger(__name__)
 
 

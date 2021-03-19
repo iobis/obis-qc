@@ -6,7 +6,6 @@ def check_record(record):
     """Check required fields."""
 
     result = {
-        "id": record["id"],
         "missing": [],
         "invalid": [],
         "flags": [],

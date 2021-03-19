@@ -1,4 +1,4 @@
-from .util import aphia
+from obisqc.util import aphia
 
 
 def check(records, cache=None):
@@ -7,14 +7,13 @@ def check(records, cache=None):
 
     taxa = {}
 
-    for record in records:
-        record_id = record["id"]
+    for index, record in enumerate(records):
         key = (record["scientificName"] if "scientificName" in record else "") + "::" + (record["scientificNameID"] if "scientificNameID" in record else "")
         if key in taxa:
-            taxa[key]["ids"].append(record_id)
+            taxa[key]["indexes"].append(index)
         else:
             taxa[key] = {
-                "ids": [ record_id ],
+                "indexes": [index],
                 "scientificName": record["scientificName"] if "scientificName" in record else None,
                 "scientificNameID": record["scientificNameID"] if "scientificNameID" in record else None,
                 "aphiaid": None,
@@ -36,12 +35,11 @@ def check(records, cache=None):
 
     # map back to qc results structure
 
-    results = []
+    results = [None] * len(records)
 
     for key, taxon in taxa.items():
-        for record_id in taxon["ids"]:
-            results.append({
-                "id": record_id,
+        for index in taxon["indexes"]:
+            results[index] = {
                 "missing": taxon["missing"],
                 "invalid": taxon["invalid"],
                 "flags": taxon["flags"],
@@ -52,6 +50,6 @@ def check(records, cache=None):
                     "brackish": taxon["brackish"]
                 },
                 "dropped": taxon["dropped"]
-            })
+            }
 
     return results
