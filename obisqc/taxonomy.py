@@ -1,4 +1,5 @@
 from obisqc.util import aphia
+from obisqc.util.misc import trim_whitespace
 
 
 def check(records, cache=None):
@@ -8,6 +9,7 @@ def check(records, cache=None):
     taxa = {}
 
     for index, record in enumerate(records):
+        record = trim_whitespace(record)
         key = (record["scientificName"] if "scientificName" in record else "") + "::" + (record["scientificNameID"] if "scientificNameID" in record else "")
         if key in taxa:
             taxa[key]["indexes"].append(index)

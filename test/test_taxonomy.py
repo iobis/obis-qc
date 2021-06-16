@@ -263,6 +263,17 @@ class TestTaxonomy(unittest.TestCase):
         self.assertIn(Flag.NO_ACCEPTED_NAME.value, results[0]["flags"])
         self.assertTrue(results[0]["annotations"]["aphia"] == 22747)
 
+    def test_whitespace(self):
+        records = [
+            {"scientificName": "Illex illecebrosus", "scientificNameID": "urn:lsid:marinespecies.org:taxname:153087 "}
+        ]
+        results = taxonomy.check(records)
+        self.assertNotIn("scientificNameID", results[0]["missing"])
+        self.assertFalse(results[0]["dropped"])
+        self.assertNotIn(Flag.NO_MATCH.value, results[0]["flags"])
+        self.assertNotIn(Flag.NO_ACCEPTED_NAME.value, results[0]["flags"])
+        self.assertTrue(results[0]["annotations"]["aphia"] == 153087)
+
 
 if __name__ == "__main__":
     unittest.main()
