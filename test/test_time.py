@@ -15,9 +15,11 @@ class TestTime(unittest.TestCase):
         self.assertEqual(results[0]["annotations"]["date_start"], 0)
         self.assertEqual(results[0]["annotations"]["date_mid"], 0)
         self.assertEqual(results[0]["annotations"]["date_end"], 0)
+        self.assertEqual(results[0]["annotations"]["date_year"], 1970)
         self.assertEqual(results[1]["annotations"]["date_start"], 31536000000)
         self.assertEqual(results[1]["annotations"]["date_mid"], 31536000000)
         self.assertEqual(results[1]["annotations"]["date_end"], 31536000000)
+        self.assertEqual(results[1]["annotations"]["date_year"], 1971)
         self.assertEqual(results[2]["annotations"]["date_start"], 0)
         #self.assertEqual(results[2]["annotations"]["date_mid"], 15768000000) # todo: fix
         self.assertEqual(results[2]["annotations"]["date_end"], 31536000000)
@@ -31,6 +33,15 @@ class TestTime(unittest.TestCase):
         self.assertIn(Flag.DATE_BEFORE_MIN.value, results[0]["flags"])
         self.assertIn("eventDate", results[0]["invalid"])
         self.assertFalse(results[0]["dropped"])
+
+    def test_year(self):
+        records = [
+            {"eventDate": "2010"},
+            {"eventDate": "2010-01-01/2012-01-01"}
+        ]
+        results = time.check(records, min_year=1900)
+        self.assertEqual(results[0]["annotations"]["date_year"], 2010)
+        self.assertEqual(results[1]["annotations"]["date_year"], 2011)
 
     def test_future_date(self):
         records = [
