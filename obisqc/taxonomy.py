@@ -1,5 +1,8 @@
 from obisqc.util import aphia
 from obisqc.util.misc import trim_whitespace
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def check(records, cache=None):
@@ -10,7 +13,7 @@ def check(records, cache=None):
 
     for index, record in enumerate(records):
         record = trim_whitespace(record)
-        key = (record["scientificName"] if "scientificName" in record else "") + "::" + (record["scientificNameID"] if "scientificNameID" in record else "")
+        key = (record["scientificName"] if "scientificName" in record and record["scientificName"] is not None else "") + "::" + (record["scientificNameID"] if "scientificNameID" in record and record["scientificNameID"] is not None else "")
         if key in taxa:
             taxa[key]["indexes"].append(index)
         else:
@@ -33,6 +36,7 @@ def check(records, cache=None):
 
     # submit all sets of taxonomic information to the aphia component
 
+    logger.debug("Checking %s names" % (len(taxa.keys())))
     aphia.check(taxa, cache)
 
     # map back to qc results structure
