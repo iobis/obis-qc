@@ -3,10 +3,28 @@ import logging
 import requests
 from obisqc.util.flags import Flag
 from obisqc.util.status import Status
+import re
+
 logger = logging.getLogger(__name__)
 
-
 match_cache = {}
+
+
+def parse_scientificnameid(s):
+    if not isinstance(s, str):
+        return None
+    if "urn:lsid:marinespecies.org:taxname:" in s:
+        m = re.search("^urn:lsid:marinespecies.org:taxname:([0-9]+)$", s)
+        if m:
+            return m.group(1)
+        else:
+            return None
+    elif "www.marinespecies.org/aphia.php" in s:
+        m = re.search("^http[s]?:\/\/www\.marinespecies\.org\/aphia\.php\?p=taxdetails&id=([0-9]+)$", s)
+        if m:
+            return m.group(1)
+        else:
+            return None
 
 
 def check(taxa, cache=None):
@@ -32,7 +50,7 @@ def detect_lsid(taxa):
     """Check if scientificNameID is present and parse LSID to Aphia ID."""
     for key, taxon in taxa.items():
         if "scientificNameID" in taxon and taxon["scientificNameID"] is not None:
-            aphiaid = pyworms.parse_lsid(taxon["scientificNameID"])
+            aphiaid = parse_scientificnameid(taxon["scientificNameID"])
             if aphiaid is None:
                 taxon["invalid"].append("scientificNameID")
             else:
@@ -65,6 +83,8 @@ def check_blacklist(taxa):
 
 def match_worms(taxa, cache=None):
     """Try to match any records that have a scientificName but no LSID. Results from previous batches are kept in a cache."""
+
+    logger.debug("There are %s names in match cache" % (len(match_cache.keys())))
 
     # gather all keys and names that need matching (no LSID, not in matching cache)
 
@@ -140,7 +160,6 @@ def fetch_aphia(aphiaid, cache=None):
     if cache is not None:
         # cache did not have this info, storing it now
         cache.store(aphiaid, aphia_info)
-    logger.debug(aphia_info)
     return aphia_info
 
 

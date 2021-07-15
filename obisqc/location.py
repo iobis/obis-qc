@@ -1,6 +1,8 @@
 from obisqc.util import misc
 import logging
 from obisqc.util.flags import Flag
+import numpy
+
 logger = logging.getLogger(__name__)
 
 
@@ -61,6 +63,8 @@ def check_record(record):
 
     # depth
 
+    depths = []
+
     if "minimumDepthInMeters" in record:
         min_check = misc.check_float(record["minimumDepthInMeters"], [-100000, 11000])
         if not min_check["valid"]:
@@ -69,6 +73,7 @@ def check_record(record):
                 result["flags"].append(Flag.DEPTH_OUT_OF_RANGE.value)
         else:
             result["annotations"]["minimumDepthInMeters"] = min_check["float"]
+            depths.append(min_check["float"])
     else:
         result["missing"].append("minimumDepthInMeters")
 
@@ -80,6 +85,7 @@ def check_record(record):
                 result["flags"].append(Flag.DEPTH_OUT_OF_RANGE.value)
         else:
             result["annotations"]["maximumDepthInMeters"] = max_check["float"]
+            depths.append(max_check["float"])
     else:
         result["missing"].append("maximumDepthInMeters")
 
@@ -89,6 +95,9 @@ def check_record(record):
     if "minimumDepthInMeters" in result["annotations"] and "maximumDepthInMeters" in result["annotations"]:
         if result["annotations"]["minimumDepthInMeters"] > result["annotations"]["maximumDepthInMeters"]:
             result["flags"].append(Flag.MIN_DEPTH_EXCEEDS_MAX.value)
+
+    if len(depths) > 0:
+        result["annotations"]["depth"] = numpy.mean(depths)
 
     return result
 
@@ -148,6 +157,6 @@ def check(records, xylookup=False):
             if xy[i] is not None:
                 check_xy(results[i], xy[i])
             else:
-                logger.warning("No xylookup result for %s" % results[i]["id"])
+                logger.warning("No xylookup result for record")
 
     return results
