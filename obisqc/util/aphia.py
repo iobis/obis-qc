@@ -167,6 +167,9 @@ def fetch(taxa, cache=None):
     """Fetch Aphia info from WoRMS, including alternative."""
 
     for key, taxon in taxa.items():
+
+        # TODO: fetch all aphia info records including alternatives in one go
+
         if "aphiaid" in taxon and taxon["aphiaid"] is not None:
             aphiaid = taxon["aphiaid"]
             aphia_info = fetch_aphia(aphiaid, cache)

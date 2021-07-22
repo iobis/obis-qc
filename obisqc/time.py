@@ -23,23 +23,27 @@ def check_record(record, min_year=0):
     if "eventDate" in record and record["eventDate"] is not None:
         try:
             parser = ISODateParser(record["eventDate"])
-            if parser.dates["mid"].year < min_year:
+
+            if parser.dates["start"].year < min_year:
                 # year precedes minimum year in settings
                 result["flags"].append(Flag.DATE_BEFORE_MIN.value)
                 raise ValueError
+
             ms_start = date_to_millis(parser.dates["start"])
             ms_mid = date_to_millis(parser.dates["mid"])
             ms_end = date_to_millis(parser.dates["end"])
             year = datetime.datetime.fromtimestamp(ms_mid / 1000).year
 
-            if ms_start > date_to_millis(datetime.date.today()):
+            if ms_end > date_to_millis(datetime.date.today()):
                 # date in the future
                 result["flags"].append(Flag.DATE_IN_FUTURE.value)
                 raise ValueError
+
             result["annotations"]["date_start"] = ms_start
             result["annotations"]["date_mid"] = ms_mid
             result["annotations"]["date_end"] = ms_end
             result["annotations"]["date_year"] = year
+
         except ValueError:
             result["invalid"].append("eventDate")
         except:
