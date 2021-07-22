@@ -33,3 +33,7 @@ def do_xylookup(results):
         for i in range(len(indices)):
             output[indices[i]] = xy[i]
     return output
+
+
+def trim_whitespace(d):
+    return {k: (v.strip() if isinstance(v, str) else v) for k, v in d.items()}

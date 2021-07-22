@@ -96,6 +96,15 @@ class TestLocation(unittest.TestCase):
         self.assertEqual(results[1]["annotations"]["maximumDepthInMeters"], 10)
         self.assertNotIn(Flag.NO_DEPTH.value, results[1]["flags"])
 
+    def test_depth_calculation(self):
+        records = [
+            {"minimumDepthInMeters": 2, "maximumDepthInMeters": 10},
+            {"minimumDepthInMeters": 2},
+        ]
+        results = location.check(records)
+        self.assertEqual(results[0]["annotations"]["depth"], 6)
+        self.assertEqual(results[1]["annotations"]["depth"], 2)
+
     def test_depth_exceeds_bath(self):
         records = [
             {"decimalLongitude": 2.1, "decimalLatitude": 51.3, "minimumDepthInMeters": 1000},

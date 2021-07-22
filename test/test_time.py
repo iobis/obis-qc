@@ -15,32 +15,64 @@ class TestTime(unittest.TestCase):
         self.assertEqual(results[0]["annotations"]["date_start"], 0)
         self.assertEqual(results[0]["annotations"]["date_mid"], 0)
         self.assertEqual(results[0]["annotations"]["date_end"], 0)
+        self.assertEqual(results[0]["annotations"]["date_year"], 1970)
         self.assertEqual(results[1]["annotations"]["date_start"], 31536000000)
         self.assertEqual(results[1]["annotations"]["date_mid"], 31536000000)
         self.assertEqual(results[1]["annotations"]["date_end"], 31536000000)
+        self.assertEqual(results[1]["annotations"]["date_year"], 1971)
         self.assertEqual(results[2]["annotations"]["date_start"], 0)
         #self.assertEqual(results[2]["annotations"]["date_mid"], 15768000000) # todo: fix
         self.assertEqual(results[2]["annotations"]["date_end"], 31536000000)
 
     def test_min_date(self):
         records = [
-            {"eventDate": "1870-01-01T00:00:00"}
+            {"eventDate": "1870-01-01T00:00:00"},
+            {"eventDate": "0001-04-11"}
         ]
+
         results = time.check(records, min_year=1900)
         self.assertNotIn("date_start", results[0]["annotations"])
+        self.assertNotIn("date_mid", results[0]["annotations"])
+        self.assertNotIn("date_end", results[0]["annotations"])
         self.assertIn(Flag.DATE_BEFORE_MIN.value, results[0]["flags"])
         self.assertIn("eventDate", results[0]["invalid"])
         self.assertFalse(results[0]["dropped"])
 
+        results = time.check(records, min_year=1000)
+        self.assertNotIn("date_start", results[1]["annotations"])
+        self.assertNotIn("date_mid", results[1]["annotations"])
+        self.assertNotIn("date_end", results[1]["annotations"])
+        self.assertIn(Flag.DATE_BEFORE_MIN.value, results[1]["flags"])
+        self.assertIn("eventDate", results[1]["invalid"])
+        self.assertFalse(results[1]["dropped"])
+
     def test_future_date(self):
         records = [
-            {"eventDate": "2300-01-01T00:00:00"}
+            {"eventDate": "2300-01-01T00:00:00"},
+            {"eventDate": "2006-01-29T11:49:00/2188-09-15T00:50:59"}
         ]
         results = time.check(records)
         self.assertNotIn("date_start", results[0]["annotations"])
+        self.assertNotIn("date_mid", results[0]["annotations"])
+        self.assertNotIn("date_end", results[0]["annotations"])
         self.assertIn(Flag.DATE_IN_FUTURE.value, results[0]["flags"])
         self.assertIn("eventDate", results[0]["invalid"])
         self.assertFalse(results[0]["dropped"])
+        self.assertNotIn("date_start", results[1]["annotations"])
+        self.assertNotIn("date_mid", results[1]["annotations"])
+        self.assertNotIn("date_end", results[1]["annotations"])
+        self.assertIn(Flag.DATE_IN_FUTURE.value, results[1]["flags"])
+        self.assertIn("eventDate", results[1]["invalid"])
+        self.assertFalse(results[1]["dropped"])
+
+    def test_year(self):
+        records = [
+            {"eventDate": "2010"},
+            {"eventDate": "2010-01-01/2012-01-01"}
+        ]
+        results = time.check(records, min_year=1900)
+        self.assertEqual(results[0]["annotations"]["date_year"], 2010)
+        self.assertEqual(results[1]["annotations"]["date_year"], 2011)
 
     def test_invalid_date_format(self):
         records = [
