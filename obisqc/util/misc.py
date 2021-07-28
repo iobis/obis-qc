@@ -1,3 +1,6 @@
+import pyxylookup
+
+
 def check_float(value, valid_range=None):
     result = { "valid": None, "float": None, "in_range": None }
     if value is not None:
@@ -19,7 +22,6 @@ def check_float(value, valid_range=None):
 
 
 def do_xylookup(results):
-    import pyxylookup
     output = [None] * len(results)
     indices = []
     coordinates = []
