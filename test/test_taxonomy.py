@@ -13,9 +13,16 @@ class TestTaxonomy(unittest.TestCase):
     def test_annotations(self):
         records = [
             {"scientificName": "NA", "scientificNameID": "NA", "phylum": "Ciliophora", "class": "Ciliatea", "order": "NA", "family": "NA", "genus": "NA"},
+            {"scientificName": "**non-current code** Antennarius sp.", "scientificNameID": None, "phylum": "Chordata", "class": "Actinopterygii", "order": "Lophiiformes", "family": "Antennariidae", "genus": "Antennarius"},
+            {"scientificName": "Vinundu guellemei", "scientificNameID": None, "phylum": None, "class": None, "order": None, "family": None, "genus": None}
         ]
         results = taxonomy.check(records)
-        self.assertIn(Flag.WORMS_ANNOTATION_UNRESOLVABLE, results[0]["flags"])
+        self.assertIn(Flag.WORMS_ANNOTATION_UNRESOLVABLE.value, results[0]["flags"])
+        self.assertIsNone(results[0]["annotations"]["aphia"])
+        self.assertIn(Flag.WORMS_ANNOTATION_REJECT_AMBIGUOUS.value, results[1]["flags"])
+        self.assertIsNone(results[1]["annotations"]["aphia"])
+        self.assertIn(Flag.WORMS_ANNOTATION_RESOLVABLE_HUMAN.value, results[2]["flags"])
+        self.assertEquals(results[2]["annotations"]["aphia"], 1060834)
 
     def test_name_valid(self):
         records = [
