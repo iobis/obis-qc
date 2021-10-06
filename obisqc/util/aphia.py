@@ -8,6 +8,7 @@ import re
 logger = logging.getLogger(__name__)
 
 match_cache = {}
+annotated_list = None
 
 
 def parse_scientificnameid(s):
@@ -29,10 +30,14 @@ def parse_scientificnameid(s):
 
 def check(taxa, cache=None):
     """Run all steps for taxonomic quality control."""
+
+    if annotated_list is None:
+        get_annotated_list()
+
     check_fields(taxa)
     detect_lsid(taxa)
     match_worms(taxa, cache)
-    check_blacklist(taxa)
+    #check_blacklist(taxa)
     fetch(taxa, cache)
     process_info(taxa)
 
@@ -57,14 +62,41 @@ def detect_lsid(taxa):
                 taxon["aphiaid"] = aphiaid
 
 
+def get_annotated_list():
+    global annotated_list
+    response = requests.get("https://api.obis.org/taxon/annotations")
+    if response.status_code == 200:
+        data = response.json()
+        if "results" in data and len(data["results"]) > 0:
+            annotated_list = dict()
+            for entry in data["results"]:
+                if entry["scientificname"] not in annotated_list:
+                    annotated_list[entry["scientificname"]] = list()
+                annotated_list[entry["scientificname"]].append(entry)
+            logger.info("Fetched annotated list with %s names" % (len(data["results"])))
+            return
+    raise RuntimeError("Cannot access annotated list")
+
+
 def check_blacklist(taxa):
     for key, taxon in taxa.items():
         if "scientificName" in taxon and taxon["scientificName"] is not None and "aphiaid" in taxon and taxon["aphiaid"] is None:
-            response = requests.get("https://api.obis.org/taxon/annotations?scientificname=%s" % taxon["scientificName"])
-            if response.status_code == 200:
-                data = response.json()
-                if "results" in data and len(data["results"]) > 0 and "annotation_type" in data["results"][0]:
-                    annotation_type = data["results"][0]["annotation_type"]
+
+            possible_matches = annotated_list[taxon["scientificName"]]
+            for possible_match in possible_matches:
+                if (possible_match["scientificnameid"] == taxon["scientificNameID"] and
+                    possible_match["phylum"] == taxon["phylum"] and
+                    possible_match["class"] == taxon["class"] and
+                    possible_match["order"] == taxon["order"] and
+                    possible_match["family"] == taxon["family"] and
+                    possible_match["genus"] == taxon["genus"]
+                ):
+
+                    if possible_match["annotation_resolved_aphiaid"] is not None:
+                        taxon["aphiaid"] = possible_match["annotation_resolved_aphiaid"]
+                        logger.info("Matched name %s using annotated list" % (taxon["scientificName"]))
+
+                    annotation_type = possible_match["annotation_type"]
                     if annotation_type == "black (no biota)": taxon["flags"].append(Flag.WORMS_ANNOTATION_NO_BIOTA.value)
                     if annotation_type == "black (unresolvable, looks like a scientific name)": taxon["flags"].append(Flag.WORMS_ANNOTATION_UNRESOLVABLE.value)
                     if annotation_type == "grey/reject habitat": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_HABITAT.value)
@@ -79,6 +111,8 @@ def check_blacklist(taxa):
                     if annotation_type == "blue/awaiting editor feedback": taxon["flags"].append(Flag.WORMS_ANNOTATION_AWAIT_EDITOR.value)
                     if annotation_type == "blue/awaiting provider feedback": taxon["flags"].append(Flag.WORMS_ANNOTATION_AWAIT_PROVIDER.value)
                     if annotation_type == "blue/DMT to process": taxon["flags"].append(Flag.WORMS_ANNOTATION_TODO.value)
+
+                    break
 
 
 def match_worms(taxa, cache=None):

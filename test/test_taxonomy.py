@@ -12,14 +12,10 @@ class TestTaxonomy(unittest.TestCase):
 
     def test_annotations(self):
         records = [
-            {"scientificName": "Brachiolaria"},
-            {"scientificName": "Cercocebus sanjei"},
-            {"scientificName": "**non-current code** ??"}
+            {"scientificName": "NA", "scientificNameID": "NA", "phylum": "Ciliophora", "class": "Ciliatea", "order": "NA", "family": "NA", "genus": "NA"},
         ]
         results = taxonomy.check(records)
-        self.assertIn(Flag.WORMS_ANNOTATION_REJECT_GROUPING.value, results[0]["flags"])
-        self.assertIn(Flag.WORMS_ANNOTATION_REJECT_HABITAT.value, results[1]["flags"])
-        self.assertIn(Flag.WORMS_ANNOTATION_NO_BIOTA.value, results[2]["flags"])
+        self.assertIn(Flag.WORMS_ANNOTATION_UNRESOLVABLE, results[0]["flags"])
 
     def test_name_valid(self):
         records = [
