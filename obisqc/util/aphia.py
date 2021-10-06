@@ -79,50 +79,53 @@ def get_annotated_list():
 
 
 def check_blacklist(taxa):
+
     for key, taxon in taxa.items():
         if "scientificName" in taxon and taxon["scientificName"] is not None and "aphiaid" in taxon and taxon["aphiaid"] is None:
 
-            possible_matches = annotated_list[taxon["scientificName"]]
-            for possible_match in possible_matches:
-                if (possible_match["scientificnameid"] == taxon["scientificNameID"] and
-                    possible_match["phylum"] == taxon["phylum"] and
-                    possible_match["class"] == taxon["class"] and
-                    possible_match["order"] == taxon["order"] and
-                    possible_match["family"] == taxon["family"] and
-                    possible_match["genus"] == taxon["genus"]
-                ):
+            if taxon["scientificName"] in annotated_list:
+                possible_matches = annotated_list[taxon["scientificName"]]
 
-                    if possible_match["annotation_resolved_aphiaid"] is not None:
-                        taxon["aphiaid"] = possible_match["annotation_resolved_aphiaid"]
-                        logger.info("Matched name %s using annotated list" % (taxon["scientificName"]))
+                for possible_match in possible_matches:
+                    if (possible_match["scientificnameid"] == taxon["scientificNameID"] and
+                        possible_match["phylum"] == taxon["phylum"] and
+                        possible_match["class"] == taxon["class"] and
+                        possible_match["order"] == taxon["order"] and
+                        possible_match["family"] == taxon["family"] and
+                        possible_match["genus"] == taxon["genus"]
+                    ):
 
-                    annotation_type = possible_match["annotation_type"].lower()
-                    if annotation_type == "black: no biota": taxon["flags"].append(Flag.WORMS_ANNOTATION_NO_BIOTA.value)
-                    elif annotation_type == "black (no biota)": taxon["flags"].append(Flag.WORMS_ANNOTATION_NO_BIOTA.value)
-                    elif annotation_type == "black (unresolvable, looks like a scientific name)": taxon["flags"].append(Flag.WORMS_ANNOTATION_UNRESOLVABLE.value)
-                    elif annotation_type == "black: unresolvable, looks like a scientific name": taxon["flags"].append(Flag.WORMS_ANNOTATION_UNRESOLVABLE.value)
-                    elif annotation_type == "grey/reject habitat": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_HABITAT.value)
-                    elif annotation_type == "grey: reject: habitat": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_HABITAT.value)
-                    elif annotation_type == "grey/reject species grouping": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_GROUPING.value)
-                    elif annotation_type == "grey: reject: species grouping": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_GROUPING.value)
-                    elif annotation_type == "grey/reject ambiguous": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_AMBIGUOUS.value)
-                    elif annotation_type == "grey: reject: ambiguous": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_AMBIGUOUS.value)
-                    elif annotation_type == "grey/reject fossil": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_FOSSIL.value)
-                    elif annotation_type == "grey: reject: fossil": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_FOSSIL.value)
-                    elif annotation_type == "white/typo: resolvable to aphiaid": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_TYPO.value)
-                    elif annotation_type == "white/exact match, authority included": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_AUTHORITY.value)
-                    elif annotation_type == "white/unpublished combination: resolvable to aphiaid": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_UNPUBLISHED.value)
-                    elif annotation_type == "white/human intervention, resolvable to aphiaid": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_HUMAN.value)
-                    elif annotation_type == "white: human intervention: resolvable to aphiaid": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_HUMAN.value)
-                    elif annotation_type == "white: human intervention: exact match, authority included": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_HUMAN.value)
-                    elif annotation_type == "white/human intervention, loss of info, resolvable to aphiaid": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_LOSS.value)
-                    elif annotation_type == "white: human intervention: loss of information, resolvable to aphiaid": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_LOSS.value)
-                    elif annotation_type == "blue/awaiting editor feedback": taxon["flags"].append(Flag.WORMS_ANNOTATION_AWAIT_EDITOR.value)
-                    elif annotation_type == "blue/awaiting provider feedback": taxon["flags"].append(Flag.WORMS_ANNOTATION_AWAIT_PROVIDER.value)
-                    elif annotation_type == "blue/dmt to process": taxon["flags"].append(Flag.WORMS_ANNOTATION_TODO.value)
-                    else: raise RuntimeError("Unknown annotation %s" % (annotation_type))
-                    
-                    break
+                        if possible_match["annotation_resolved_aphiaid"] is not None:
+                            taxon["aphiaid"] = possible_match["annotation_resolved_aphiaid"]
+                            logger.info("Matched name %s using annotated list" % (taxon["scientificName"]))
+
+                        annotation_type = possible_match["annotation_type"].lower()
+                        if annotation_type == "black: no biota": taxon["flags"].append(Flag.WORMS_ANNOTATION_NO_BIOTA.value)
+                        elif annotation_type == "black (no biota)": taxon["flags"].append(Flag.WORMS_ANNOTATION_NO_BIOTA.value)
+                        elif annotation_type == "black (unresolvable, looks like a scientific name)": taxon["flags"].append(Flag.WORMS_ANNOTATION_UNRESOLVABLE.value)
+                        elif annotation_type == "black: unresolvable, looks like a scientific name": taxon["flags"].append(Flag.WORMS_ANNOTATION_UNRESOLVABLE.value)
+                        elif annotation_type == "grey/reject habitat": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_HABITAT.value)
+                        elif annotation_type == "grey: reject: habitat": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_HABITAT.value)
+                        elif annotation_type == "grey/reject species grouping": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_GROUPING.value)
+                        elif annotation_type == "grey: reject: species grouping": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_GROUPING.value)
+                        elif annotation_type == "grey/reject ambiguous": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_AMBIGUOUS.value)
+                        elif annotation_type == "grey: reject: ambiguous": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_AMBIGUOUS.value)
+                        elif annotation_type == "grey/reject fossil": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_FOSSIL.value)
+                        elif annotation_type == "grey: reject: fossil": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_FOSSIL.value)
+                        elif annotation_type == "white/typo: resolvable to aphiaid": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_TYPO.value)
+                        elif annotation_type == "white/exact match, authority included": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_AUTHORITY.value)
+                        elif annotation_type == "white/unpublished combination: resolvable to aphiaid": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_UNPUBLISHED.value)
+                        elif annotation_type == "white/human intervention, resolvable to aphiaid": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_HUMAN.value)
+                        elif annotation_type == "white: human intervention: resolvable to aphiaid": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_HUMAN.value)
+                        elif annotation_type == "white: human intervention: exact match, authority included": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_HUMAN.value)
+                        elif annotation_type == "white/human intervention, loss of info, resolvable to aphiaid": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_LOSS.value)
+                        elif annotation_type == "white: human intervention: loss of information, resolvable to aphiaid": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_LOSS.value)
+                        elif annotation_type == "blue/awaiting editor feedback": taxon["flags"].append(Flag.WORMS_ANNOTATION_AWAIT_EDITOR.value)
+                        elif annotation_type == "blue/awaiting provider feedback": taxon["flags"].append(Flag.WORMS_ANNOTATION_AWAIT_PROVIDER.value)
+                        elif annotation_type == "blue/dmt to process": taxon["flags"].append(Flag.WORMS_ANNOTATION_TODO.value)
+                        else: raise RuntimeError("Unknown annotation %s" % (annotation_type))
+
+                        break
 
 
 def match_worms(taxa, cache=None):
