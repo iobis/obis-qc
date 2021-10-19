@@ -11,3 +11,4 @@ class Status(Enum):
     TAXON_INQUIRENDUM = "taxon inquirendum"
     INTERIM_UNPUBLISHED = "interim unpublished"
     TEMPORARY_NAME = "temporary name"
+    ALTERNATE_REPRESENTATION = "alternate representation"
