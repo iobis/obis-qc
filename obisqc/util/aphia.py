@@ -128,6 +128,10 @@ def check_blacklist(taxa):
                         break
 
 
+def sanitize_name(name):
+    return name.replace("#", "")
+
+
 def match_worms(taxa, cache=None):
     """Try to match any records that have a scientificName but no LSID. Results from previous batches are kept in a cache."""
 
@@ -146,6 +150,10 @@ def match_worms(taxa, cache=None):
             else:
                 keys.append(key)
                 names.append(name)
+
+    # sanitize
+
+    names = [sanitize_name(name) for name in names]
 
     # do matching (todo: support cache)
 
