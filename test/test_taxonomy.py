@@ -27,6 +27,14 @@ class TestTaxonomy(unittest.TestCase):
         self.assertIn(Flag.WORMS_ANNOTATION_RESOLVABLE_LOSS.value, results[3]["flags"])
         self.assertEquals(results[3]["annotations"]["aphia"], 11676)
 
+    def test_annotations_resolvable(self):
+        records = [
+            {"scientificName": "Hyalinia crystallina Muller, 1774", "phylum": "Mollusca", "class": "Gastropoda Cuvier, 1797", "order": "Stylommatophora", "family": "Zonitidae Mörch, 1864", "genus": "Hyalinia Agassiz, 1837"}
+        ]
+        results = taxonomy.check(records)
+        self.assertIn(Flag.WORMS_ANNOTATION_RESOLVABLE.value, results[0]["flags"])
+        self.assertIsNotNone(results[0]["annotations"]["aphia"])
+
     def test_name_valid(self):
         records = [
             {"scientificName": "Abra alba"}
