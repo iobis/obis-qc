@@ -1,49 +1,50 @@
 import unittest
 from obisqc import absence
+from obisqc.model import Record
 
 
 class TestAbsence(unittest.TestCase):
 
     def test_occurrencestatus(self):
         records = [
-            {},
-            {"occurrenceStatus": "present"},
-            {"occurrenceStatus": "Present"},
-            {"occurrenceStatus": "absent"},
-            {"occurrenceStatus": "is present"}
+            Record(),
+            Record(occurrenceStatus="present"),
+            Record(occurrenceStatus="Present"),
+            Record(occurrenceStatus="absent"),
+            Record(occurrenceStatus="is present")
         ]
-        results = absence.check(records)
-        self.assertFalse(results[0]["absence"])
-        self.assertFalse(results[1]["absence"])
-        self.assertFalse(results[2]["absence"])
-        self.assertTrue(results[3]["absence"])
-        self.assertFalse(results[4]["absence"])
-        self.assertIn("occurrenceStatus", results[4]["invalid"])
+        absence.check(records)
+        self.assertFalse(records[0].absence)
+        self.assertFalse(records[1].absence)
+        self.assertFalse(records[2].absence)
+        self.assertTrue(records[3].absence)
+        self.assertFalse(records[4].absence)
+        self.assertTrue(records[4].is_invalid("occurrenceStatus"))
 
     def test_individualcount(self):
         records = [
-            {},
-            {"individualCount": "0"},
-            {"individualCount": "0.0"},
-            {"individualCount": 0},
-            {"individualCount": 0.0},
-            {"individualCount": 1}
+            Record(),
+            Record(individualCount="0"),
+            Record(individualCount="0.0"),
+            Record(individualCount=0),
+            Record(individualCount=0.0),
+            Record(individualCount=1)
         ]
-        results = absence.check(records)
-        self.assertFalse(results[0]["absence"])
-        self.assertTrue(results[1]["absence"])
-        self.assertTrue(results[2]["absence"])
-        self.assertTrue(results[3]["absence"])
-        self.assertTrue(results[4]["absence"])
-        self.assertFalse(results[5]["absence"])
+        absence.check(records)
+        self.assertFalse(records[0].absence)
+        self.assertTrue(records[1].absence)
+        self.assertTrue(records[2].absence)
+        self.assertTrue(records[3].absence)
+        self.assertTrue(records[4].absence)
+        self.assertFalse(records[5].absence)
 
     def test_individualcount_invalid(self):
         records = [
-            {"individualCount": "3 individuals"}
+            Record(individualCount="3 individuals")
         ]
-        results = absence.check(records)
-        self.assertFalse(results[0]["absence"])
-        self.assertIn("individualCount", results[0]["invalid"])
+        absence.check(records)
+        self.assertFalse(records[0].absence)
+        self.assertTrue(records[0].is_invalid("individualCount"))
 
 
 if __name__ == "__main__":

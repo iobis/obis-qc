@@ -1,43 +1,38 @@
+from typing import List
+from obisqc.model import Record
 from obisqc.util import misc
 import logging
+
+
 logger = logging.getLogger(__name__)
 
 
-def check_record(record):
+def check_record(record: Record) -> None:
     """Check is a record is an absence record."""
 
-    result = {
-        "missing": [],
-        "invalid": [],
-        "flags": [],
-        "annotations": {},
-        "dropped": False,
-        "absence": False
-    }
+    record.absence = False
 
     # occurrenceStatus
 
-    if "occurrenceStatus" in record and record["occurrenceStatus"] is not None:
-        if record["occurrenceStatus"].lower() == "absent":
-            result["absence"] = True
-        elif record["occurrenceStatus"].lower() != "present":
-            result["invalid"].append("occurrenceStatus")
+    if record.get("occurrenceStatus") is not None:
+        if record.get("occurrenceStatus").lower() == "absent":
+            record.absence = True
+        elif record.get("occurrenceStatus").lower() != "present":
+            record.set_invalid("occurrenceStatus")
     else:
-        result["missing"].append("occurrenceStatus")
+        record.set_missing("occurrenceStatus")
 
     # individualCount
 
-    if "individualCount" in record and record["individualCount"] is not None:
-        count_check = misc.check_float(record["individualCount"])
+    if record.get("individualCount") is not None:
+        count_check = misc.check_float(record.get("individualCount"))
         if not count_check["valid"]:
-            result["invalid"].append("individualCount")
+            record.set_invalid("individualCount")
         else:
-            value = float(record["individualCount"])
-            if value == 0:
-                result["absence"] = True
-
-    return result
+            if count_check["float"] == 0:
+                record.absence = True
 
 
-def check(records):
-    return [check_record(record) for record in records]
+def check(records: List[Record]):
+    for record in records:
+        check_record(record)

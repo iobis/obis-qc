@@ -1,4 +1,7 @@
+from typing import List
 import pyxylookup
+
+from obisqc.model import Record
 
 
 def check_float(value, valid_range=None):
@@ -21,21 +24,17 @@ def check_float(value, valid_range=None):
     return result
 
 
-def do_xylookup(results):
-    output = [None] * len(results)
+def do_xylookup(records: List[Record]) -> None:
+    output = [None] * len(records)
     indices = []
     coordinates = []
-    for i in range(len(results)):
-        result = results[i]
-        if "decimalLongitude" in result["annotations"] and "decimalLatitude" in result["annotations"]:
+    for i in range(len(records)):
+        record = records[i]
+        if record.get_interpreted("decimalLongitude") is not None and record.get_interpreted("decimalLatitude") is not None:
             indices.append(i)
-            coordinates.append([result["annotations"]["decimalLongitude"], result["annotations"]["decimalLatitude"]])
+            coordinates.append([record.get_interpreted("decimalLongitude"), record.get_interpreted("decimalLatitude")])
     if len(coordinates) > 0:
         xy = pyxylookup.lookup(coordinates, shoredistance=True, grids=True, areas=True)
         for i in range(len(indices)):
             output[indices[i]] = xy[i]
     return output
-
-
-def trim_whitespace(d):
-    return {k: (v.strip() if isinstance(v, str) else v) for k, v in d.items()}

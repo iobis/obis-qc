@@ -1,6 +1,8 @@
+from typing import Dict, List
 import pyworms
 import logging
 import requests
+from obisqc.model import AphiaCacheInterface, AphiaInfo
 from obisqc.util.flags import Flag
 from obisqc.util.status import Status
 import re
@@ -11,58 +13,24 @@ match_cache = {}
 annotated_list = None
 
 
-def parse_scientificnameid(s):
-    if not isinstance(s, str):
+def parse_scientificnameid(input: str) -> str:
+    if not isinstance(input, str):
         return None
-    if "urn:lsid:marinespecies.org:taxname:" in s:
-        m = re.search("^urn:lsid:marinespecies.org:taxname:([0-9]+)$", s)
+    if "urn:lsid:marinespecies.org:taxname:" in input:
+        m = re.search("^urn:lsid:marinespecies.org:taxname:([0-9]+)$", input)
         if m:
             return m.group(1)
         else:
             return None
-    elif "www.marinespecies.org/aphia.php" in s:
-        m = re.search("^http[s]?:\/\/www\.marinespecies\.org\/aphia\.php\?p=taxdetails&id=([0-9]+)$", s)
+    elif "www.marinespecies.org/aphia.php" in input:
+        m = re.search("^http[s]?:\/\/www\.marinespecies\.org\/aphia\.php\?p=taxdetails&id=([0-9]+)$", input)
         if m:
             return m.group(1)
         else:
             return None
 
 
-def check(taxa, cache=None):
-    """Run all steps for taxonomic quality control."""
-
-    if annotated_list is None:
-        get_annotated_list()
-
-    check_fields(taxa)
-    detect_lsid(taxa)
-    match_worms(taxa, cache)
-    check_blacklist(taxa)
-    fetch(taxa, cache)
-    process_info(taxa)
-
-
-def check_fields(taxa):
-    """Check if taxonomy related fields are present."""
-    for key, taxon in taxa.items():
-        if "scientificName" not in taxon or taxon["scientificName"] is None:
-            taxon["missing"].append("scientificName")
-        if "scientificNameID" not in taxon or taxon["scientificNameID"] is None:
-            taxon["missing"].append("scientificNameID")
-
-
-def detect_lsid(taxa):
-    """Check if scientificNameID is present and parse LSID to Aphia ID."""
-    for key, taxon in taxa.items():
-        if "scientificNameID" in taxon and taxon["scientificNameID"] is not None:
-            aphiaid = parse_scientificnameid(taxon["scientificNameID"])
-            if aphiaid is None:
-                taxon["invalid"].append("scientificNameID")
-            else:
-                taxon["aphiaid"] = aphiaid
-
-
-def get_annotated_list():
+def get_annotated_list() -> None:
     global annotated_list
     response = requests.get("https://api.obis.org/taxon/annotations")
     if response.status_code == 200:
@@ -128,11 +96,11 @@ def check_blacklist(taxa):
                         break
 
 
-def sanitize_name(name):
+def sanitize_name(name: str) -> str:
     return name.replace("#", "")
 
 
-def match_worms(taxa, cache=None):
+def match_worms(taxa):
     """Try to match any records that have a scientificName but no LSID. Results from previous batches are kept in a cache."""
 
     logger.debug("There are %s names in match cache" % (len(match_cache.keys())))
@@ -171,17 +139,17 @@ def match_worms(taxa, cache=None):
             match_cache[names[i]] = aphiaid
 
 
-def has_alternative(aphia_info):
+def has_alternative(aphia_info: AphiaInfo):
     """Check if an alternative valid AphiaID is present and different from the AphiaID."""
     return "valid_AphiaID" in aphia_info["record"] and aphia_info["record"]["valid_AphiaID"] is not None and aphia_info["record"]["AphiaID"] != aphia_info["record"]["valid_AphiaID"]
 
 
-def is_accepted(aphia_info):
+def is_accepted(aphia_info: AphiaInfo):
     """Check if the Aphia status is accepted."""
     return aphia_info["record"]["status"] == Status.ACCEPTED.value
 
 
-def convert_environment(env):
+def convert_environment(env: int):
     """Convert an environment flag from integer to boolean."""
     if env is None:
         return None
@@ -189,7 +157,7 @@ def convert_environment(env):
         return bool(env)
 
 
-def fetch_aphia(aphiaid, cache=None):
+def fetch_aphia(aphiaid, cache: AphiaCacheInterface=None):
     """Fetch the Aphia record and classification for an AphiaID."""
     if cache is not None:
         aphia_info = cache.fetch(aphiaid)
@@ -218,7 +186,7 @@ def fetch_aphia(aphiaid, cache=None):
     return aphia_info
 
 
-def fetch(taxa, cache=None):
+def fetch(taxa, cache: AphiaCacheInterface=None):
     """Fetch Aphia info from WoRMS, including alternative."""
 
     for key, taxon in taxa.items():
@@ -303,3 +271,6 @@ def process_info(taxa):
                 taxon["dropped"] = True
             elif taxon["marine"] is not True and taxon["brackish"] is not True:
                 taxon["flags"].append(Flag.MARINE_UNSURE.value)
+
+
+get_annotated_list()

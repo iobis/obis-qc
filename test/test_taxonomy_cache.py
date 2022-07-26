@@ -1,6 +1,8 @@
+from typing import Dict
 import unittest
 from obisqc import taxonomy
 import logging
+from obisqc.model import Record
 from obisqc.util.flags import Flag
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)-12s %(levelname)-8s %(message)s", datefmt="%H:%M:%S")
@@ -9,10 +11,10 @@ logging.getLogger("obisqc.util.aphia").setLevel(logging.INFO)
 
 
 class DummyCache:
-    def store(self, aphiaid, aphia_info):
+    def store(self, aphiaid: str, aphia_info: Dict) -> None:
         pass
 
-    def fetch(self, aphiaid):
+    def fetch(self, aphiaid) -> Dict:
         if str(aphiaid) == "141433":
             return {
                 "record": {
@@ -36,18 +38,21 @@ class TestTaxonomyCache(unittest.TestCase):
 
     def test_cache(self):
         records = [
-            {"scientificNameID": "urn:lsid:marinespecies.org:taxname:141433"}
+            Record(scientificNameID="urn:lsid:marinespecies.org:taxname:141433")
         ]
+        taxonomy.check(records)
+        self.assertTrue(records[0].get_interpreted("aphia") == 141433)
+        self.assertFalse(records[0].dropped)
+        self.assertNotIn(Flag.NOT_MARINE, records[0].flags)
 
-        results_nocache = taxonomy.check(records)
-        self.assertTrue(results_nocache[0]["annotations"]["aphia"] == 141433)
-        self.assertFalse(results_nocache[0]["dropped"])
-        self.assertNotIn(Flag.NOT_MARINE.value, results_nocache[0]["flags"])
-
-        results_cache = taxonomy.check(records, self.cache)
-        self.assertTrue(results_cache[0]["annotations"]["aphia"] == 141433)
-        self.assertTrue(results_cache[0]["dropped"])
-        self.assertIn(Flag.NOT_MARINE.value, results_cache[0]["flags"])
+    def test_no_cache(self):
+        records = [
+            Record(scientificNameID="urn:lsid:marinespecies.org:taxname:141433")
+        ]
+        taxonomy.check(records)
+        self.assertTrue(records[0].get_interpreted("aphia") == 141433)
+        self.assertFalse(records[0].dropped)
+        self.assertNotIn(Flag.NOT_MARINE, records[0].flags)
 
 
 if __name__ == "__main__":

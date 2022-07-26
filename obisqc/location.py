@@ -1,3 +1,5 @@
+from typing import Dict, List
+from obisqc.model import Record
 from obisqc.util import misc
 import logging
 from obisqc.util.flags import Flag
@@ -6,103 +8,92 @@ import numpy
 logger = logging.getLogger(__name__)
 
 
-def check_record(record):
+def check_record(record: Record) -> None:
     """Check location related fields."""
-
-    result = {
-        "missing": [],
-        "invalid": [],
-        "flags": [],
-        "annotations": {},
-        "dropped": False
-    }
 
     # coordinate uncertainty
 
-    if "coordinateUncertaintyInMeters" in record:
-        unc_check = misc.check_float(record["coordinateUncertaintyInMeters"], [0, 10000000])
+    if record.get("coordinateUncertaintyInMeters") is not None:
+        unc_check = misc.check_float(record.get("coordinateUncertaintyInMeters"), [0, 10000000])
         if not unc_check["valid"]:
-            result["invalid"].append("coordinateUncertaintyInMeters")
+            record.set_invalid("coordinateUncertaintyInMeters")
         else:
-            result["annotations"]["coordinateUncertaintyInMeters"] = unc_check["float"]
+            record.set_interpreted("coordinateUncertaintyInMeters", unc_check["float"])
     else:
-        result["missing"].append("coordinateUncertaintyInMeters")
+        record.set_missing("coordinateUncertaintyInMeters")
 
     # coordinates
 
-    if "decimalLongitude" in record:
-        lon_check = misc.check_float(record["decimalLongitude"], [-180, 180])
+    if record.get("decimalLongitude") is not None:
+        lon_check = misc.check_float(record.get("decimalLongitude"), [-180, 180])
         if not lon_check["valid"]:
-            result["invalid"].append("decimalLongitude")
+            record.set_invalid("decimalLongitude")
             if not lon_check["in_range"]:
-                result["flags"].append(Flag.LON_OUT_OF_RANGE.value)
+                record.set_flag(Flag.LON_OUT_OF_RANGE)
         else:
-            result["annotations"]["decimalLongitude"] = lon_check["float"]
+            record.set_interpreted("decimalLongitude", lon_check["float"])
     else:
-        result["missing"].append("decimalLongitude")
+        record.set_missing("decimalLongitude")
 
-    if "decimalLatitude" in record:
-        lat_check = misc.check_float(record["decimalLatitude"], [-90, 90])
+    if record.get("decimalLatitude") is not None:
+        lat_check = misc.check_float(record.get("decimalLatitude"), [-90, 90])
         if not lat_check["valid"]:
-            result["invalid"].append("decimalLatitude")
+            record.set_invalid("decimalLatitude")
             if not lat_check["in_range"]:
-                result["flags"].append(Flag.LAT_OUT_OF_RANGE.value)
+                record.set_flag(Flag.LAT_OUT_OF_RANGE)
         else:
-            result["annotations"]["decimalLatitude"] = lat_check["float"]
+            record.set_interpreted("decimalLatitude", lat_check["float"])
     else:
-        result["missing"].append("decimalLatitude")
+        record.set_missing("decimalLatitude")
 
-    if (not "decimalLongitude" in result["annotations"]) or (not "decimalLatitude" in result["annotations"]):
-        result["flags"].append(Flag.NO_COORD.value)
-        result["dropped"] = True
+    if record.get_interpreted("decimalLongitude") is None or record.get_interpreted("decimalLatitude") is None:
+        record.set_flag(Flag.NO_COORD)
+        record.dropped = True
 
-    if "decimalLongitude" in result["annotations"] and "decimalLatitude" in result["annotations"]:
-        if result["annotations"]["decimalLongitude"] == 0 and result["annotations"]["decimalLatitude"] == 0:
-            result["flags"].append(Flag.ZERO_COORD.value)
-            result["dropped"] = True
+    if record.get_interpreted("decimalLongitude") == 0 and record.get_interpreted("decimalLatitude") == 0:
+        record.set_flag(Flag.ZERO_COORD)
+        record.dropped = True
 
     # depth
 
     depths = []
 
-    if "minimumDepthInMeters" in record:
-        min_check = misc.check_float(record["minimumDepthInMeters"], [-100000, 11000])
+    if record.get("minimumDepthInMeters") is not None:
+        min_check = misc.check_float(record.get("minimumDepthInMeters"), [-100000, 11000])
         if not min_check["valid"]:
-            result["invalid"].append("minimumDepthInMeters")
+            record.set_invalid("minimumDepthInMeters")
             if min_check["in_range"] is False:
-                result["flags"].append(Flag.DEPTH_OUT_OF_RANGE.value)
+                record.set_flag(Flag.DEPTH_OUT_OF_RANGE)
         else:
-            result["annotations"]["minimumDepthInMeters"] = min_check["float"]
+            record.set_interpreted("minimumDepthInMeters", min_check["float"])
             depths.append(min_check["float"])
     else:
-        result["missing"].append("minimumDepthInMeters")
+        record.set_missing("minimumDepthInMeters")
 
-    if "maximumDepthInMeters" in record:
-        max_check = misc.check_float(record["maximumDepthInMeters"], [-100000, 11000])
+    if record.get("maximumDepthInMeters") is not None:
+        max_check = misc.check_float(record.get("maximumDepthInMeters"), [-100000, 11000])
         if not max_check["valid"]:
-            result["invalid"].append("maximumDepthInMeters")
+            record.set_invalid("maximumDepthInMeters")
             if max_check["in_range"] is False:
-                result["flags"].append(Flag.DEPTH_OUT_OF_RANGE.value)
+                record.set_flag(Flag.DEPTH_OUT_OF_RANGE)
         else:
-            result["annotations"]["maximumDepthInMeters"] = max_check["float"]
+            record.set_interpreted("maximumDepthInMeters", max_check["float"])
             depths.append(max_check["float"])
     else:
-        result["missing"].append("maximumDepthInMeters")
+        record.set_missing("maximumDepthInMeters")
 
-    if (not "minimumDepthInMeters" in result["annotations"]) and (not "maximumDepthInMeters" in result["annotations"]):
-        result["flags"].append(Flag.NO_DEPTH.value)
+    if record.get_interpreted("maximumDepthInMeters") is None and record.get_interpreted("minimumDepthInMeters") is None:
+        record.set_flag(Flag.NO_DEPTH)
 
-    if "minimumDepthInMeters" in result["annotations"] and "maximumDepthInMeters" in result["annotations"]:
-        if result["annotations"]["minimumDepthInMeters"] > result["annotations"]["maximumDepthInMeters"]:
-            result["flags"].append(Flag.MIN_DEPTH_EXCEEDS_MAX.value)
+    if record.get_interpreted("maximumDepthInMeters") is not None and record.get_interpreted("minimumDepthInMeters") is not None:
+        if record.get_interpreted("minimumDepthInMeters") > record.get_interpreted("maximumDepthInMeters"):
+            record.set_flag(Flag.MIN_DEPTH_EXCEEDS_MAX)
 
     if len(depths) > 0:
-        result["annotations"]["depth"] = numpy.mean(depths)
-
-    return result
+        record.set_interpreted("depth", numpy.mean(depths))
 
 
-def check_xy(result, xy):
+def check_xy(record: Record, xy: Dict) -> None:
     """Perform checks using results from the xylookup service."""
 
     # depth
@@ -113,22 +104,22 @@ def check_xy(result, xy):
     depth_exceeds_bath = False
 
     for depth_field in ["minimumDepthInMeters", "maximumDepthInMeters"]:
-        if depth_field in result["annotations"] and "bathymetry" in xy["grids"]:
+        if record.get_interpreted(depth_field) is not None and "bathymetry" in xy["grids"]:
             if xy["grids"]["bathymetry"] < 0:
-                if result["annotations"][depth_field] > intercept + xy["grids"]["bathymetry"]:
+                if record.get_interpreted(depth_field) > intercept + xy["grids"]["bathymetry"]:
                     depth_exceeds_bath = True
             else:
-                if result["annotations"][depth_field] > intercept + xy["grids"]["bathymetry"] * slope:
+                if record.get_interpreted(depth_field) > intercept + xy["grids"]["bathymetry"] * slope:
                     depth_exceeds_bath = True
 
     if depth_exceeds_bath:
-        result["flags"].append(Flag.DEPTH_EXCEEDS_BATH.value)
+        record.set_flag(Flag.DEPTH_EXCEEDS_BATH)
 
     # shoredistance
 
-    result["annotations"]["shoredistance"] = xy["shoredistance"]
+    record.set_interpreted("shoredistance", xy["shoredistance"])
     if xy["shoredistance"] < 0:
-        result["flags"].append(Flag.ON_LAND.value)
+        record.set_flag(Flag.ON_LAND)
 
     # areas
 
@@ -136,27 +127,26 @@ def check_xy(result, xy):
     for key in xy["areas"]:
         for area in xy["areas"][key]:
             areas.append(area["id"])
-    result["annotations"]["areas"] = areas
+    record.set_interpreted("areas", areas)
 
     # grids
 
     if "sstemperature" in xy["grids"]:
-        result["annotations"]["sst"] = round(xy["grids"]["sstemperature"], 2)
+        record.set_interpreted("sst", round(xy["grids"]["sstemperature"], 2))
     if "sssalinity" in xy["grids"]:
-        result["annotations"]["sss"] = round(xy["grids"]["sssalinity"], 2)
+        record.set_interpreted("sss", round(xy["grids"]["sssalinity"], 2))
     if "bathymetry" in xy["grids"]:
-        result["annotations"]["bathymetry"] = round(xy["grids"]["bathymetry"], 2)
+        record.set_interpreted("bathymetry", round(xy["grids"]["bathymetry"], 2))
 
 
-def check(records, xylookup=False):
-    results = [check_record(record) for record in records]
+def check(records: List[Record], xylookup=False) -> None:
+    for record in records:
+        check_record(record)
     if xylookup:
-        xy = misc.do_xylookup(results)
-        assert(len(xy) == len(results))
-        for i in range(len(results)):
+        xy = misc.do_xylookup(records)
+        assert(len(xy) == len(records))
+        for i in range(len(records)):
             if xy[i] is not None:
-                check_xy(results[i], xy[i])
+                check_xy(records[i], xy[i])
             else:
                 logger.warning("No xylookup result for record")
-
-    return results

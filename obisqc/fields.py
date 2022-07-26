@@ -1,29 +1,25 @@
 import logging
+from typing import List
+from obisqc.model import Record
+
+
 logger = logging.getLogger(__name__)
 
 
-def check_record(record):
+def check_record(record: Record) -> None:
     """Check required fields."""
-
-    result = {
-        "missing": [],
-        "invalid": [],
-        "flags": [],
-        "annotations": {},
-        "dropped": False
-    }
 
     # basisOfRecord
 
     vocab = ["PreservedSpecimen", "FossilSpecimen", "LivingSpecimen", "MaterialSample", "Event", "HumanObservation", "MachineObservation", "Taxon", "Occurrence"]
-    if "basisOfRecord" in record and record["basisOfRecord"] is not None:
-        if not record["basisOfRecord"].lower() in [value.lower() for value in vocab]:
-            result["invalid"].append("basisOfRecord")
+
+    if record.get("basisOfRecord") is not None:
+        if not record.get("basisOfRecord").lower() in [value.lower() for value in vocab]:
+            record.set_invalid("basisOfRecord")
     else:
-        result["missing"].append("basisOfRecord")
-
-    return result
+        record.set_missing("basisOfRecord")
 
 
-def check(records):
-    return [check_record(record) for record in records]
+def check(records: List[Record]) -> None:
+    for record in records:
+        check_record(record)
