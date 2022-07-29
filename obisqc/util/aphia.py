@@ -117,6 +117,7 @@ def check_blacklist(taxa):
                         elif annotation_type == "white/unpublished combination: resolvable to aphiaid": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_UNPUBLISHED.value)
                         elif annotation_type == "white/human intervention, resolvable to aphiaid": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE.value)
                         elif annotation_type == "white: human intervention: resolvable to aphiaid": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE.value)
+                        elif annotation_type == "white: human intervention, resolvable to aphiaid": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE.value)
                         elif annotation_type == "white: human intervention: exact match, authority included": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_AUTHORITY.value)
                         elif annotation_type == "white/human intervention, loss of info, resolvable to aphiaid": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_LOSS.value)
                         elif annotation_type == "white: human intervention: loss of information, resolvable to aphiaid": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_LOSS.value)
