@@ -32,7 +32,7 @@ class TestTaxonomy(unittest.TestCase):
             {"scientificName": "Hyalinia crystallina Muller, 1774", "phylum": "Mollusca", "class": "Gastropoda Cuvier, 1797", "order": "Stylommatophora", "family": "Zonitidae Mörch, 1864", "genus": "Hyalinia Agassiz, 1837"}
         ]
         results = taxonomy.check(records)
-        self.assertIn(Flag.WORMS_ANNOTATION_RESOLVABLE.value, results[0]["flags"])
+        self.assertIn(Flag.WORMS_ANNOTATION_RESOLVABLE_HUMAN.value, results[0]["flags"])
         self.assertIsNotNone(results[0]["annotations"]["aphia"])
 
     def test_name_valid(self):
