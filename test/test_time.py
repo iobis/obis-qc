@@ -90,6 +90,15 @@ class TestTime(unittest.TestCase):
         self.assertIn("eventDate", results[0]["missing"])
         self.assertFalse(results[0]["dropped"])
 
+    def test_bc_dates(self):
+        records = [
+            {"eventDate": "0000"},
+            {"eventDate": "-0001-02-03"}
+        ]
+        results = time.check(records)
+        self.assertEqual(results[0]["annotations"]["date_year"], 0)
+        self.assertEqual(results[1]["annotations"]["date_year"], -1)
+
 
 if __name__ == "__main__":
     unittest.main()
