@@ -1,13 +1,13 @@
+from __future__ import annotations
 from tarfile import RECORDSIZE
 from typing import Dict, List
 from obisqc.util.flags import Flag
 import hashlib
 import json
 from abc import ABC, abstractmethod
-from __future__ import annotations
 
 
-TAXONOMY_FIELDS = ["taxonID", "scientificNameID", "acceptedNameUsageID	", "parentNameUsageID", "originalNameUsageID", "taxonConceptID", "scientificName", "acceptedNameUsage", "parentNameUsage", "originalNameUsage", "higherClassification", "kingdom", "phylum", "class", "order", "family", "subfamily", "genus", "genericName", "subgenus", "infragenericEpithet", "specificEpithet", "infraspecificEpithet", "cultivarEpithet", "taxonRank", "verbatimTaxonRank", "scientificNameAuthorship", "vernacularName", "nomenclaturalCode", "taxonomicStatus", "nomenclaturalStatus"]
+TAXONOMY_FIELDS = ["aphiaid", "unaccepted", "taxonID", "scientificNameID", "acceptedNameUsageID", "parentNameUsageID", "originalNameUsageID", "taxonConceptID", "scientificName", "acceptedNameUsage", "parentNameUsage", "originalNameUsage", "higherClassification", "kingdom", "phylum", "class", "order", "family", "subfamily", "genus", "genericName", "subgenus", "infragenericEpithet", "specificEpithet", "infraspecificEpithet", "cultivarEpithet", "taxonRank", "verbatimTaxonRank", "scientificNameAuthorship", "vernacularName", "nomenclaturalCode", "taxonomicStatus", "nomenclaturalStatus"]
 
 
 class Field:
@@ -26,7 +26,7 @@ class Record:
         self.absence: bool = None
         self.dropped: bool = None
         self.fields: Dict[str, Field] = {}
-        self.flags: List[Flag] = [] 
+        self.flags: List[Flag] = []
         self.extensions: Dict[str, List[Record]] = {}
 
         if data is not None:
@@ -75,14 +75,18 @@ class Record:
 
     def trim_whitespace(self) -> None:
         for field in self.fields:
-            if isinstance(field.value, str):
-                field.value = field.value.strip()
+            if isinstance(self.get(field), str):
+                self.set(field, self.get(field).strip())
 
-    def get_taxonomy(self) -> Record:
-        record = Record()
+    def get_taxonomy(self) -> Taxon:
+        record = Taxon()
         for field in TAXONOMY_FIELDS:
             record.set(field, self.get(field))
         return record
+
+    def merge_taxonomy(self, other: Taxon) -> None:
+        for field in TAXONOMY_FIELDS:
+            self.fields[field] = other.fields[field]
 
     def get_hash(self) -> str:
         record_dict = {field: self.get(field) for field in self.fields}
@@ -90,6 +94,15 @@ class Record:
         encoded = json.dumps(record_dict, sort_keys=True).encode()
         dhash.update(encoded)
         return dhash.hexdigest()
+
+
+class Taxon(Record):
+
+    def __init__(self):
+        Record.__init__(self)
+        self.aphiaid: int = None
+        self.aphia_info: AphiaInfo = None
+        self.aphia_info_accepted: AphiaInfo = None
 
 
 class AphiaInfo:

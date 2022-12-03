@@ -41,7 +41,7 @@ class TestTaxonomyCache(unittest.TestCase):
             Record(scientificNameID="urn:lsid:marinespecies.org:taxname:141433")
         ]
         taxonomy.check(records)
-        self.assertTrue(records[0].get_interpreted("aphia") == 141433)
+        self.assertTrue(records[0].get_interpreted("aphiaid") == 141433)
         self.assertFalse(records[0].dropped)
         self.assertNotIn(Flag.NOT_MARINE, records[0].flags)
 
@@ -50,7 +50,7 @@ class TestTaxonomyCache(unittest.TestCase):
             Record(scientificNameID="urn:lsid:marinespecies.org:taxname:141433")
         ]
         taxonomy.check(records)
-        self.assertTrue(records[0].get_interpreted("aphia") == 141433)
+        self.assertTrue(records[0].get_interpreted("aphiaid") == 141433)
         self.assertFalse(records[0].dropped)
         self.assertNotIn(Flag.NOT_MARINE, records[0].flags)
 

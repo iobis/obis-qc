@@ -24,13 +24,13 @@ class TestUtil(unittest.TestCase):
         self.assertIsNone(id)
 
         id = aphia.parse_scientificnameid("http://www.marinespecies.org/aphia.php?p=taxdetails&id=123456")
-        self.assertEquals(id, "123456")
+        self.assertEquals(id, 123456)
 
         id = aphia.parse_scientificnameid("https://www.marinespecies.org/aphia.php?p=taxdetails&id=123456")
-        self.assertEquals(id, "123456")
+        self.assertEquals(id, 123456)
 
         id = aphia.parse_scientificnameid("urn:lsid:marinespecies.org:taxname:123456")
-        self.assertEquals(id, "123456")
+        self.assertEquals(id, 123456)
 
 
 if __name__ == "__main__":

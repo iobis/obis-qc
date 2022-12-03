@@ -2,31 +2,27 @@ from isodateparser import ISODateParser
 import datetime
 import logging
 from obisqc.util.flags import Flag
+from obisqc.model import Record
+from typing import List
+
 logger = logging.getLogger(__name__)
 
 
-def date_to_millis(d):
+def date_to_millis(d) -> int:
     """Convert a date to milliseconds."""
     return int((d - datetime.date(1970, 1, 1)).total_seconds() * 1000)
 
 
-def check_record(record, min_year=0):
+def check_record(record: Record, min_year: int=0):
     """Check the eventDate."""
 
-    result = {
-        "missing": [],
-        "invalid": [],
-        "flags": [],
-        "annotations": {},
-        "dropped": False
-    }
-    if "eventDate" in record and record["eventDate"] is not None:
+    if record.get("eventDate") is not None:
         try:
-            parser = ISODateParser(record["eventDate"])
+            parser = ISODateParser(record.get("eventDate"))
 
             if parser.dates["start"].year < min_year:
                 # year precedes minimum year in settings
-                result["flags"].append(Flag.DATE_BEFORE_MIN.value)
+                record.set_flag(Flag.DATE_BEFORE_MIN)
                 raise ValueError
 
             ms_start = date_to_millis(parser.dates["start"])
@@ -36,23 +32,22 @@ def check_record(record, min_year=0):
 
             if ms_end > date_to_millis(datetime.date.today()):
                 # date in the future
-                result["flags"].append(Flag.DATE_IN_FUTURE.value)
+                record.set_flag(Flag.DATE_IN_FUTURE)
                 raise ValueError
 
-            result["annotations"]["date_start"] = ms_start
-            result["annotations"]["date_mid"] = ms_mid
-            result["annotations"]["date_end"] = ms_end
-            result["annotations"]["date_year"] = year
+            record.set_interpreted("date_start", ms_start)
+            record.set_interpreted("date_mid", ms_mid)
+            record.set_interpreted("date_end", ms_end)
+            record.set_interpreted("date_year", year)
 
         except ValueError:
-            result["invalid"].append("eventDate")
+            record.set_invalid("eventDate")
         except:
-            logger.error("Error processing date " + record["eventDate"])
+            logger.error("Error processing date " + record.get("eventDate"))
             raise
     else:
-        result["missing"].append("eventDate")
-    return result
+        record.set_missing("eventDate")
 
 
-def check(records, min_year=0):
+def check(records: List[Record], min_year: int=0):
     return [check_record(record, min_year) for record in records]

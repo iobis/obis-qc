@@ -139,7 +139,7 @@ def check_xy(record: Record, xy: Dict) -> None:
         record.set_interpreted("bathymetry", round(xy["grids"]["bathymetry"], 2))
 
 
-def check(records: List[Record], xylookup=False) -> None:
+def check(records: List[Record], xylookup: bool=False) -> None:
     for record in records:
         check_record(record)
     if xylookup:

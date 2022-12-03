@@ -21,13 +21,13 @@ class TestTaxonomy(unittest.TestCase):
         ]
         taxonomy.check(records)
         self.assertIn(Flag.WORMS_ANNOTATION_UNRESOLVABLE, records[0].flags)
-        self.assertIsNone(records[0].get_interpreted("aphia"))
+        self.assertIsNone(records[0].get_interpreted("aphiaid"))
         self.assertIn(Flag.WORMS_ANNOTATION_REJECT_AMBIGUOUS, records[1].flags)
-        self.assertIsNone(records[1].get_interpreted("aphia"))
-        self.assertIn(Flag.WORMS_ANNOTATION_RESOLVABLE_HUMAN, records[2].flags)
-        self.assertEquals(records[2].get_interpreted("aphia"), 1060834)
+        self.assertIsNone(records[1].get_interpreted("aphiaid"))
+        self.assertIn(Flag.WORMS_ANNOTATION_RESOLVABLE, records[2].flags)
+        self.assertEquals(records[2].get_interpreted("aphiaid"), 1060834)
         self.assertIn(Flag.WORMS_ANNOTATION_RESOLVABLE_LOSS, records[3].flags)
-        self.assertEquals(records[3].get_interpreted("aphia"), 11676)
+        self.assertEquals(records[3].get_interpreted("aphiaid"), 11676)
 
     def test_annotations_resolvable(self):
         records = [
@@ -35,14 +35,14 @@ class TestTaxonomy(unittest.TestCase):
         ]
         taxonomy.check(records)
         self.assertIn(Flag.WORMS_ANNOTATION_RESOLVABLE, records[0].flags)
-        self.assertIsNotNone(records[0].get_interpreted("aphia"))
+        self.assertIsNotNone(records[0].get_interpreted("aphiaid"))
 
     def test_name_valid(self):
         records = [
             Record(scientificName="Abra alba")
         ]
         taxonomy.check(records)
-        self.assertTrue(records[0].get_interpreted("aphia") == 141433)
+        self.assertTrue(records[0].get_interpreted("aphiaid") == 141433)
         self.assertIsNone(records[0].get_interpreted("unaccepted"))
         self.assertFalse(records[0].dropped)
         self.assertFalse(records[0].is_missing("scientificName"))
@@ -54,7 +54,7 @@ class TestTaxonomy(unittest.TestCase):
             Record(scientificName="Orca gladiator")
         ]
         taxonomy.check(records)
-        self.assertTrue(records[0].get_interpreted("aphia") == 137102)
+        self.assertTrue(records[0].get_interpreted("aphiaid") == 137102)
         self.assertTrue(records[0].get_interpreted("unaccepted") == 384046)
         self.assertFalse(records[0].dropped)
         self.assertFalse(records[0].is_missing("scientificName"))
@@ -66,7 +66,7 @@ class TestTaxonomy(unittest.TestCase):
             Record(scientificNameID="urn:lsid:marinespecies.org:taxname:141433")
         ]
         taxonomy.check(records)
-        self.assertTrue(records[0].get_interpreted("aphia") == 141433)
+        self.assertTrue(records[0].get_interpreted("aphiaid") == 141433)
         self.assertIsNone(records[0].get_interpreted("unaccepted"))
         self.assertFalse(records[0].dropped)
         self.assertFalse(records[0].is_missing("scientificNameID"))
@@ -78,7 +78,7 @@ class TestTaxonomy(unittest.TestCase):
             Record(scientificNameID="urn:lsid:marinespecies.org:taxname:384046")
         ]
         taxonomy.check(records)
-        self.assertTrue(records[0].get_interpreted("aphia") == 137102)
+        self.assertTrue(records[0].get_interpreted("aphiaid") == 137102)
         self.assertTrue(records[0].get_interpreted("unaccepted") == 384046)
         self.assertFalse(records[0].dropped)
         self.assertFalse(records[0].is_missing("scientificNameID"))
@@ -94,7 +94,7 @@ class TestTaxonomy(unittest.TestCase):
         self.assertFalse(records[0].is_missing("scientificName"))
         self.assertTrue(records[0].dropped)
         self.assertIn(Flag.NO_MATCH, records[0].flags)
-        self.assertIsNone(records[0].get_interpreted("aphia"))
+        self.assertIsNone(records[0].get_interpreted("aphiaid"))
         self.assertIsNone(records[0].get_interpreted("unaccepted"))
 
     def test_id_invalid(self):
@@ -107,8 +107,7 @@ class TestTaxonomy(unittest.TestCase):
         self.assertTrue(records[0].dropped)
         self.assertIn(Flag.NO_MATCH, records[0].flags)
         self.assertTrue(records[0].is_invalid("scientificNameID"))
-        self.assertTrue(len([f for f in records[0].fields if f.invalid]) == 1)
-        self.assertIsNone(records[0].get_interpreted("aphia"))
+        self.assertIsNone(records[0].get_interpreted("aphiaid"))
         self.assertIsNone(records[0].get_interpreted("unaccepted"))
 
     def test_id_non_existing(self):
@@ -121,7 +120,7 @@ class TestTaxonomy(unittest.TestCase):
         self.assertTrue(records[0].dropped)
         self.assertIn(Flag.NO_MATCH, records[0].flags)
         self.assertTrue(records[0].is_invalid("scientificNameID"))
-        self.assertIsNone(records[0].get_interpreted("aphia"))
+        self.assertIsNone(records[0].get_interpreted("aphiaid"))
         self.assertIsNone(records[0].get_interpreted("unaccepted"))
 
     def test_name_not_marine(self):
@@ -133,7 +132,7 @@ class TestTaxonomy(unittest.TestCase):
         self.assertFalse(records[0].is_missing("scientificName"))
         self.assertTrue(records[0].dropped)
         self.assertIn(Flag.NOT_MARINE, records[0].flags)
-        self.assertTrue(records[0].get_interpreted("aphia") == 212668)
+        self.assertTrue(records[0].get_interpreted("aphiaid") == 212668)
         self.assertIsNone(records[0].get_interpreted("unaccepted"))
 
     def test_name_synonym_accepted_marine_unsure(self):
@@ -145,7 +144,7 @@ class TestTaxonomy(unittest.TestCase):
         self.assertFalse(records[0].is_missing("scientificName"))
         self.assertFalse(records[0].dropped)
         self.assertIn(Flag.MARINE_UNSURE, records[0].flags)
-        self.assertTrue(records[0].get_interpreted("aphia") == 971564)
+        self.assertTrue(records[0].get_interpreted("aphiaid") == 971564)
 
     def test_nomen_nudum(self):
         records = [
@@ -158,7 +157,7 @@ class TestTaxonomy(unittest.TestCase):
         self.assertNotIn(Flag.NO_MATCH, records[0].flags)
         self.assertIn(Flag.MARINE_UNSURE, records[0].flags)
         self.assertIn(Flag.NO_ACCEPTED_NAME, records[0].flags)
-        self.assertTrue(records[0].get_interpreted("aphia") == 152230)
+        self.assertTrue(records[0].get_interpreted("aphiaid") == 152230)
 
     def test_aphiaid_zero(self):
         records = [
@@ -181,7 +180,7 @@ class TestTaxonomy(unittest.TestCase):
         self.assertNotIn(Flag.NO_MATCH, records[0].flags)
         self.assertIn(Flag.NO_ACCEPTED_NAME, records[0].flags)
         self.assertNotIn(Flag.MARINE_UNSURE, records[0].flags)
-        self.assertTrue(records[0].get_interpreted("aphia") == 794)
+        self.assertTrue(records[0].get_interpreted("aphiaid") == 794)
 
     def test_uncertain(self):
         records = [
@@ -194,7 +193,7 @@ class TestTaxonomy(unittest.TestCase):
         self.assertNotIn(Flag.NO_MATCH, records[0].flags)
         self.assertIn(Flag.NO_ACCEPTED_NAME, records[0].flags)
         self.assertIn(Flag.MARINE_UNSURE, records[0].flags)
-        self.assertTrue(records[0].get_interpreted("aphia") == 835694)
+        self.assertTrue(records[0].get_interpreted("aphiaid") == 835694)
 
     def test_uncertain_2(self):
         records = [
@@ -207,7 +206,7 @@ class TestTaxonomy(unittest.TestCase):
         self.assertNotIn(Flag.NO_MATCH, records[0].flags)
         self.assertIn(Flag.NO_ACCEPTED_NAME, records[0].flags)
         self.assertNotIn(Flag.MARINE_UNSURE, records[0].flags)
-        self.assertTrue(records[0].get_interpreted("aphia") == 637279)
+        self.assertTrue(records[0].get_interpreted("aphiaid") == 637279)
 
     def test_unaccepted(self):
         records = [
@@ -220,7 +219,7 @@ class TestTaxonomy(unittest.TestCase):
         self.assertNotIn(Flag.NO_MATCH, records[0].flags)
         self.assertIn(Flag.NO_ACCEPTED_NAME, records[0].flags)
         self.assertNotIn(Flag.MARINE_UNSURE, records[0].flags)
-        self.assertTrue(records[0].get_interpreted("aphia") == 637279)
+        self.assertTrue(records[0].get_interpreted("aphiaid") == 637279)
 
     def test_nomen_dubium(self):
         records = [
@@ -233,7 +232,7 @@ class TestTaxonomy(unittest.TestCase):
         self.assertNotIn(Flag.NO_MATCH, records[0].flags)
         self.assertIn(Flag.NO_ACCEPTED_NAME, records[0].flags)
         self.assertNotIn(Flag.MARINE_UNSURE, records[0].flags)
-        self.assertTrue(records[0].get_interpreted("aphia") == 130270)
+        self.assertTrue(records[0].get_interpreted("aphiaid") == 130270)
 
     def test_taxon_inquirendum(self):
         records = [
@@ -244,7 +243,7 @@ class TestTaxonomy(unittest.TestCase):
         self.assertFalse(records[0].dropped)
         self.assertNotIn(Flag.NO_MATCH, records[0].flags)
         self.assertIn(Flag.NO_ACCEPTED_NAME, records[0].flags)
-        self.assertTrue(records[0].get_interpreted("aphia") == 133144)
+        self.assertTrue(records[0].get_interpreted("aphiaid") == 133144)
 
     def test_interim_unpublished(self):
         records = [
@@ -255,7 +254,7 @@ class TestTaxonomy(unittest.TestCase):
         self.assertFalse(records[0].dropped)
         self.assertNotIn(Flag.NO_MATCH, records[0].flags)
         self.assertIn(Flag.NO_ACCEPTED_NAME, records[0].flags)
-        self.assertTrue(records[0].get_interpreted("aphia") == 1057043)
+        self.assertTrue(records[0].get_interpreted("aphiaid") == 1057043)
 
     def test_interim_quarantined(self):
         records = [
@@ -266,7 +265,7 @@ class TestTaxonomy(unittest.TestCase):
         self.assertFalse(records[0].dropped)
         self.assertNotIn(Flag.NO_MATCH, records[0].flags)
         self.assertIn(Flag.NO_ACCEPTED_NAME, records[0].flags)
-        self.assertTrue(records[0].get_interpreted("aphia") == 493822)
+        self.assertTrue(records[0].get_interpreted("aphiaid") == 493822)
 
     def test_interim_deleted(self):
         records = [
@@ -277,7 +276,7 @@ class TestTaxonomy(unittest.TestCase):
         self.assertFalse(records[0].dropped)
         self.assertNotIn(Flag.NO_MATCH, records[0].flags)
         self.assertIn(Flag.NO_ACCEPTED_NAME, records[0].flags)
-        self.assertTrue(records[0].get_interpreted("aphia") == 22747)
+        self.assertTrue(records[0].get_interpreted("aphiaid") == 22747)
 
     def test_whitespace(self):
         records = [
@@ -288,7 +287,7 @@ class TestTaxonomy(unittest.TestCase):
         self.assertFalse(records[0].dropped)
         self.assertNotIn(Flag.NO_MATCH, records[0].flags)
         self.assertNotIn(Flag.NO_ACCEPTED_NAME, records[0].flags)
-        self.assertTrue(records[0].get_interpreted("aphia") == 153087)
+        self.assertTrue(records[0].get_interpreted("aphiaid") == 153087)
 
 
 if __name__ == "__main__":

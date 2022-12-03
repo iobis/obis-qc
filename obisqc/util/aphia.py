@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict
 import pyworms
 import logging
 import requests
@@ -9,23 +9,23 @@ import re
 
 logger = logging.getLogger(__name__)
 
-match_cache = {}
+match_cache: Dict[str, int] = {}
 annotated_list = None
 
 
-def parse_scientificnameid(input: str) -> str:
+def parse_scientificnameid(input: str) -> int:
     if not isinstance(input, str):
         return None
     if "urn:lsid:marinespecies.org:taxname:" in input:
         m = re.search("^urn:lsid:marinespecies.org:taxname:([0-9]+)$", input)
         if m:
-            return m.group(1)
+            return int(m.group(1))
         else:
             return None
     elif "www.marinespecies.org/aphia.php" in input:
         m = re.search("^http[s]?:\/\/www\.marinespecies\.org\/aphia\.php\?p=taxdetails&id=([0-9]+)$", input)
         if m:
-            return m.group(1)
+            return int(m.group(1))
         else:
             return None
 
@@ -41,58 +41,85 @@ def get_annotated_list() -> None:
                 if entry["scientificname"] not in annotated_list:
                     annotated_list[entry["scientificname"]] = list()
                 annotated_list[entry["scientificname"]].append(entry)
-            logger.info("Fetched annotated list with %s names" % (len(data["results"])))
+            logger.debug("Fetched annotated list with %s names" % (len(data["results"])))
             return
     raise RuntimeError("Cannot access annotated list")
 
 
-def check_blacklist(taxa):
+def check_annotated_list(taxa):
 
     for key, taxon in taxa.items():
-        if "scientificName" in taxon and taxon["scientificName"] is not None and "aphiaid" in taxon and taxon["aphiaid"] is None:
+        if taxon.get("scientificName") is not None and taxon.aphiaid is None:
 
-            if taxon["scientificName"] in annotated_list:
-                possible_matches = annotated_list[taxon["scientificName"]]
+            if taxon.get("scientificName") in annotated_list:
+                possible_matches = annotated_list[taxon.get("scientificName")]
 
                 for possible_match in possible_matches:
-                    if (possible_match["scientificnameid"] == taxon["scientificNameID"] and
-                        possible_match["phylum"] == taxon["phylum"] and
-                        possible_match["class"] == taxon["class"] and
-                        possible_match["order"] == taxon["order"] and
-                        possible_match["family"] == taxon["family"] and
-                        possible_match["genus"] == taxon["genus"]
+                    if (
+                        possible_match["scientificnameid"] == taxon.get("scientificNameID") and
+                        possible_match["phylum"] == taxon.get("phylum") and
+                        possible_match["class"] == taxon.get("class") and
+                        possible_match["order"] == taxon.get("order") and
+                        possible_match["family"] == taxon.get("family") and
+                        possible_match["genus"] == taxon.get("genus")
                     ):
 
                         if possible_match["annotation_resolved_aphiaid"] is not None:
-                            taxon["aphiaid"] = possible_match["annotation_resolved_aphiaid"]
-                            logger.info("Matched name %s using annotated list" % (taxon["scientificName"]))
+                            if possible_match["annotation_resolved_aphiaid"] is not None:
+                                taxon.aphiaid = int(possible_match["annotation_resolved_aphiaid"])
+                            logger.debug("Matched name %s using annotated list" % (taxon.get("scientificName")))
 
                         annotation_type = possible_match["annotation_type"].lower()
-                        if annotation_type == "black: no biota": taxon["flags"].append(Flag.WORMS_ANNOTATION_NO_BIOTA.value)
-                        elif annotation_type == "black (no biota)": taxon["flags"].append(Flag.WORMS_ANNOTATION_NO_BIOTA.value)
-                        elif annotation_type == "black (unresolvable, looks like a scientific name)": taxon["flags"].append(Flag.WORMS_ANNOTATION_UNRESOLVABLE.value)
-                        elif annotation_type == "black: unresolvable, looks like a scientific name": taxon["flags"].append(Flag.WORMS_ANNOTATION_UNRESOLVABLE.value)
-                        elif annotation_type == "grey/reject habitat": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_HABITAT.value)
-                        elif annotation_type == "grey: reject: habitat": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_HABITAT.value)
-                        elif annotation_type == "grey/reject species grouping": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_GROUPING.value)
-                        elif annotation_type == "grey: reject: species grouping": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_GROUPING.value)
-                        elif annotation_type == "grey/reject ambiguous": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_AMBIGUOUS.value)
-                        elif annotation_type == "grey: reject: ambiguous": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_AMBIGUOUS.value)
-                        elif annotation_type == "grey/reject fossil": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_FOSSIL.value)
-                        elif annotation_type == "grey: reject: fossil": taxon["flags"].append(Flag.WORMS_ANNOTATION_REJECT_FOSSIL.value)
-                        elif annotation_type == "white/typo: resolvable to aphiaid": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_TYPO.value)
-                        elif annotation_type == "white/exact match, authority included": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_AUTHORITY.value)
-                        elif annotation_type == "white/unpublished combination: resolvable to aphiaid": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_UNPUBLISHED.value)
-                        elif annotation_type == "white/human intervention, resolvable to aphiaid": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE.value)
-                        elif annotation_type == "white: human intervention: resolvable to aphiaid": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE.value)
-                        elif annotation_type == "white: human intervention, resolvable to aphiaid": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE.value)
-                        elif annotation_type == "white: human intervention: exact match, authority included": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_AUTHORITY.value)
-                        elif annotation_type == "white/human intervention, loss of info, resolvable to aphiaid": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_LOSS.value)
-                        elif annotation_type == "white: human intervention: loss of information, resolvable to aphiaid": taxon["flags"].append(Flag.WORMS_ANNOTATION_RESOLVABLE_LOSS.value)
-                        elif annotation_type == "blue/awaiting editor feedback": taxon["flags"].append(Flag.WORMS_ANNOTATION_AWAIT_EDITOR.value)
-                        elif annotation_type == "blue/awaiting provider feedback": taxon["flags"].append(Flag.WORMS_ANNOTATION_AWAIT_PROVIDER.value)
-                        elif annotation_type == "blue/dmt to process": taxon["flags"].append(Flag.WORMS_ANNOTATION_TODO.value)
-                        else: raise RuntimeError("Unknown annotation %s" % (annotation_type))
+                        if annotation_type == "black: no biota":
+                            taxon.set_flag(Flag.WORMS_ANNOTATION_NO_BIOTA)
+                        elif annotation_type == "black (no biota)":
+                            taxon.set_flag(Flag.WORMS_ANNOTATION_NO_BIOTA)
+                        elif annotation_type == "black (unresolvable, looks like a scientific name)":
+                            taxon.set_flag(Flag.WORMS_ANNOTATION_UNRESOLVABLE)
+                        elif annotation_type == "black: unresolvable, looks like a scientific name":
+                            taxon.set_flag(Flag.WORMS_ANNOTATION_UNRESOLVABLE)
+                        elif annotation_type == "grey/reject habitat":
+                            taxon.set_flag(Flag.WORMS_ANNOTATION_REJECT_HABITAT)
+                        elif annotation_type == "grey: reject: habitat":
+                            taxon.set_flag(Flag.WORMS_ANNOTATION_REJECT_HABITAT)
+                        elif annotation_type == "grey/reject species grouping":
+                            taxon.set_flag(Flag.WORMS_ANNOTATION_REJECT_GROUPING)
+                        elif annotation_type == "grey: reject: species grouping":
+                            taxon.set_flag(Flag.WORMS_ANNOTATION_REJECT_GROUPING)
+                        elif annotation_type == "grey/reject ambiguous":
+                            taxon.set_flag(Flag.WORMS_ANNOTATION_REJECT_AMBIGUOUS)
+                        elif annotation_type == "grey: reject: ambiguous":
+                            taxon.set_flag(Flag.WORMS_ANNOTATION_REJECT_AMBIGUOUS)
+                        elif annotation_type == "grey/reject fossil":
+                            taxon.set_flag(Flag.WORMS_ANNOTATION_REJECT_FOSSIL)
+                        elif annotation_type == "grey: reject: fossil":
+                            taxon.set_flag(Flag.WORMS_ANNOTATION_REJECT_FOSSIL)
+                        elif annotation_type == "white/typo: resolvable to aphiaid":
+                            taxon.set_flag(Flag.WORMS_ANNOTATION_RESOLVABLE_TYPO)
+                        elif annotation_type == "white/exact match, authority included":
+                            taxon.set_flag(Flag.WORMS_ANNOTATION_RESOLVABLE_AUTHORITY)
+                        elif annotation_type == "white/unpublished combination: resolvable to aphiaid":
+                            taxon.set_flag(Flag.WORMS_ANNOTATION_RESOLVABLE_UNPUBLISHED)
+                        elif annotation_type == "white/human intervention, resolvable to aphiaid":
+                            taxon.set_flag(Flag.WORMS_ANNOTATION_RESOLVABLE)
+                        elif annotation_type == "white: human intervention: resolvable to aphiaid":
+                            taxon.set_flag(Flag.WORMS_ANNOTATION_RESOLVABLE)
+                        elif annotation_type == "white: human intervention, resolvable to aphiaid":
+                            taxon.set_flag(Flag.WORMS_ANNOTATION_RESOLVABLE)
+                        elif annotation_type == "white: human intervention: exact match, authority included":
+                            taxon.set_flag(Flag.WORMS_ANNOTATION_RESOLVABLE_AUTHORITY)
+                        elif annotation_type == "white/human intervention, loss of info, resolvable to aphiaid":
+                            taxon.set_flag(Flag.WORMS_ANNOTATION_RESOLVABLE_LOSS)
+                        elif annotation_type == "white: human intervention: loss of information, resolvable to aphiaid":
+                            taxon.set_flag(Flag.WORMS_ANNOTATION_RESOLVABLE_LOSS)
+                        elif annotation_type == "blue/awaiting editor feedback":
+                            taxon.set_flag(Flag.WORMS_ANNOTATION_AWAIT_EDITOR)
+                        elif annotation_type == "blue/awaiting provider feedback":
+                            taxon.set_flag(Flag.WORMS_ANNOTATION_AWAIT_PROVIDER)
+                        elif annotation_type == "blue/dmt to process":
+                            taxon.set_flag(Flag.WORMS_ANNOTATION_TODO)
+                        else:
+                            raise RuntimeError("Unknown annotation %s" % (annotation_type))
 
                         break
 
@@ -101,7 +128,7 @@ def sanitize_name(name: str) -> str:
     return name.replace("#", "")
 
 
-def match_worms(taxa):
+def match_worms(taxa: Dict[str, AphiaInfo]):
     """Try to match any records that have a scientificName but no LSID. Results from previous batches are kept in a cache."""
 
     logger.debug("There are %s names in match cache" % (len(match_cache.keys())))
@@ -112,10 +139,10 @@ def match_worms(taxa):
     names = []
     keys = []
     for key in allkeys:
-        if taxa[key]["aphiaid"] is None and "scientificName" in taxa[key] and taxa[key]["scientificName"] is not None:
-            name = taxa[key]["scientificName"]
+        if taxa[key].aphiaid is None and taxa[key].get("scientificName") is not None:
+            name = taxa[key].get("scientificName")
             if name in match_cache:
-                taxa[key]["aphiaid"] = match_cache[name]
+                taxa[key].aphiaid = match_cache[name]
             else:
                 keys.append(key)
                 names.append(name)
@@ -135,8 +162,9 @@ def match_worms(taxa):
             matches = allmatches[i]
             if matches is not None and len(matches) == 1:
                 if matches[0]["match_type"] == "exact" or matches[0]["match_type"] == "exact_subgenus":
-                    aphiaid = matches[0]["AphiaID"]
-            taxa[keys[i]]["aphiaid"] = aphiaid
+                    if matches[0]["AphiaID"] is not None:
+                        aphiaid = int(matches[0]["AphiaID"])
+            taxa[keys[i]].aphiaid = aphiaid
             match_cache[names[i]] = aphiaid
 
 
@@ -187,6 +215,17 @@ def fetch_aphia(aphiaid, cache: AphiaCacheInterface=None):
     return aphia_info
 
 
+def detect_lsid(taxa: Dict[str, AphiaInfo]) -> None:
+    """Check if scientificNameID is present and parse LSID to Aphia ID."""
+    for taxon in taxa.values():
+        if taxon.get("scientificNameID") is not None:
+            aphiaid = parse_scientificnameid(taxon.get("scientificNameID"))
+            if aphiaid is None:
+                taxon.set_invalid("scientificNameID")
+            else:
+                taxon.aphiaid = aphiaid
+
+
 def fetch(taxa, cache: AphiaCacheInterface=None):
     """Fetch Aphia info from WoRMS, including alternative."""
 
@@ -194,84 +233,21 @@ def fetch(taxa, cache: AphiaCacheInterface=None):
 
         # TODO: fetch all aphia info records including alternatives in one go
 
-        if "aphiaid" in taxon and taxon["aphiaid"] is not None:
-            aphiaid = taxon["aphiaid"]
-            aphia_info = fetch_aphia(aphiaid, cache)
+        if taxon.aphiaid is not None:
+            aphia_info = fetch_aphia(taxon.aphiaid, cache)
             if aphia_info["record"] is None or aphia_info["classification"] is None:
                 pass
             else:
-                taxon["aphia_info"] = aphia_info
+                taxon.aphia_info = aphia_info
                 if has_alternative(aphia_info):
 
                     # alternative provided
 
-                    aphia_info_accepted = fetch_aphia(taxon["aphia_info"]["record"]["valid_AphiaID"], cache)
+                    aphia_info_accepted = fetch_aphia(taxon.aphia_info["record"]["valid_AphiaID"], cache)
                     if aphia_info_accepted["record"] is None or aphia_info_accepted["classification"] is None:
                         pass
                     else:
-                        taxon["aphia_info_accepted"] = aphia_info_accepted
-
-
-def process_info(taxa):
-    """Go through processed list of taxa to add flags and mark as dropped."""
-
-    for key, taxon in taxa.items():
-
-        if taxon["aphia_info"] is None:
-
-            # no Aphia record found
-
-            taxon["flags"].append(Flag.NO_MATCH.value)
-            taxon["dropped"] = True
-
-            if taxon["scientificNameID"] is not None:
-                if "scientificNameID" not in taxon["invalid"]:
-                    taxon["invalid"].append("scientificNameID")
-
-        else:
-
-            taxon["dropped"] = False
-
-            # Aphia record found
-
-            if not is_accepted(taxon["aphia_info"]):
-
-                # not accepted
-
-                if taxon["aphia_info_accepted"] is not None:
-
-                    # alternative provided
-
-                    taxon["aphia"] = taxon["aphia_info_accepted"]["record"]["AphiaID"]
-                    taxon["unaccepted"] = taxon["aphia_info"]["record"]["AphiaID"]
-                    taxon["marine"] = convert_environment(taxon["aphia_info_accepted"]["record"]["isMarine"])
-                    taxon["brackish"] = convert_environment(taxon["aphia_info_accepted"]["record"]["isBrackish"])
-
-                else:
-
-                    # no alternative provided
-
-                    taxon["flags"].append(Flag.NO_ACCEPTED_NAME.value)
-
-                    taxon["aphia"] = taxon["aphia_info"]["record"]["AphiaID"]
-                    taxon["marine"] = convert_environment(taxon["aphia_info"]["record"]["isMarine"])
-                    taxon["brackish"] = convert_environment(taxon["aphia_info"]["record"]["isBrackish"])
-
-            else:
-
-                # accepted
-
-                taxon["aphia"] = taxon["aphia_info"]["record"]["AphiaID"]
-                taxon["marine"] = convert_environment(taxon["aphia_info"]["record"]["isMarine"])
-                taxon["brackish"] = convert_environment(taxon["aphia_info"]["record"]["isBrackish"])
-
-            # marine flag
-
-            if taxon["marine"] is False and taxon["brackish"] is False:
-                taxon["flags"].append(Flag.NOT_MARINE.value)
-                taxon["dropped"] = True
-            elif taxon["marine"] is not True and taxon["brackish"] is not True:
-                taxon["flags"].append(Flag.MARINE_UNSURE.value)
+                        taxon.aphia_info_accepted = aphia_info_accepted
 
 
 get_annotated_list()

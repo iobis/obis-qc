@@ -1,8 +1,16 @@
 {
     "version": "0.2.0",
     "configurations": [
+
         {
-            "name": "Test",
+            "name": "Test (green)",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "green test",
+            "env": {"PYTHONPATH": "${workspaceFolder}"}
+        },
+        {
+            "name": "Test (nose)",
             "type": "python",
             "request": "launch",
             "program": "test.py",

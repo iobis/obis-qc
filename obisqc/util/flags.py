@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class Flag(Enum):
     DATE_BEFORE_MIN = "DATE_BEFORE_MIN"
     DATE_IN_FUTURE = "DATE_IN_FUTURE"
