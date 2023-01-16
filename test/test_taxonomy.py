@@ -133,6 +133,8 @@ class TestTaxonomy(unittest.TestCase):
         self.assertTrue(records[0].dropped)
         self.assertIn(Flag.NOT_MARINE, records[0].flags)
         self.assertTrue(records[0].get_interpreted("aphiaid") == 212668)
+        self.assertFalse(records[0].get_interpreted("marine"))
+        self.assertFalse(records[0].get_interpreted("brackish"))
         self.assertIsNone(records[0].get_interpreted("unaccepted"))
 
     def test_name_synonym_accepted_marine_unsure(self):
@@ -144,6 +146,8 @@ class TestTaxonomy(unittest.TestCase):
         self.assertFalse(records[0].is_missing("scientificName"))
         self.assertFalse(records[0].dropped)
         self.assertIn(Flag.MARINE_UNSURE, records[0].flags)
+        self.assertIsNone(records[0].get_interpreted("marine"))
+        self.assertIsNone(records[0].get_interpreted("brackish"))
         self.assertTrue(records[0].get_interpreted("aphiaid") == 971564)
 
     def test_nomen_nudum(self):
