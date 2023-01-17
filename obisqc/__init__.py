@@ -10,6 +10,6 @@ from typing import List
 def check(records: List[Record], xylookup: bool=False):
     absence.check(records)
     fields.check(records)
-    location.check(records, xylookup=xylookup)
-    taxonomy.check(records)
     time.check(records)
+    taxonomy.check(records)
+    location.check(records, xylookup=xylookup)

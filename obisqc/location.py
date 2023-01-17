@@ -32,6 +32,7 @@ def check_record(record: Record) -> None:
                 record.set_flag(Flag.LON_OUT_OF_RANGE)
         else:
             record.set_interpreted("decimalLongitude", lon_check["float"])
+
     else:
         record.set_missing("decimalLongitude")
 

@@ -99,6 +99,7 @@ def check(records: List[Record], cache=None) -> None:
                 # accepted
 
                 taxon.set_interpreted("aphiaid", int(taxon.aphia_info["record"]["AphiaID"]))
+                taxon.set_interpreted("unaccepted", None)
                 taxon.set_interpreted("marine", convert_environment(taxon.aphia_info["record"]["isMarine"]))
                 taxon.set_interpreted("brackish", convert_environment(taxon.aphia_info["record"]["isBrackish"]))
 

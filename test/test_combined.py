@@ -22,6 +22,8 @@ class TestCombined(unittest.TestCase):
         self.assertIn(Flag.WORMS_ANNOTATION_RESOLVABLE, records[0].flags)
         self.assertIn(Flag.NOT_MARINE, records[0].flags)
         self.assertIn(Flag.ON_LAND, records[0].flags)
+        self.assertTrue(records[0].get_interpreted("decimalLongitude") == 7.3)
+        self.assertTrue(records[0].get_interpreted("decimalLatitude") == 50.3)
 
 
 if __name__ == "__main__":
