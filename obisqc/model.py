@@ -12,11 +12,14 @@ TAXONOMY_FIELDS = ["aphiaid", "unaccepted", "taxonID", "scientificNameID", "acce
 
 class Field:
 
-    def __init__(self, value=None, interpreted=None, invalid=None, missing=None):
+    def __init__(self, value=None, invalid=None, missing=None, **kwargs):
         self.verbatim = value
-        self.interpreted = interpreted
         self.invalid = invalid
         self.missing = missing
+
+        for k, v in kwargs.items():
+            if k == "interpreted":
+                self.interpreted = v
 
 
 class Record:
@@ -43,7 +46,10 @@ class Record:
         self.fields[field] = Field(value if value != "" else None)
 
     def get_interpreted(self, field:str):
-        return self.fields[field].interpreted if field in self.fields else None
+        return self.fields[field].interpreted if field in self.fields and hasattr(self.fields[field], "interpreted") else None
+
+    def has_interpreted(self, field:str):
+        return field in self.fields and hasattr(self.fields[field], "interpreted")
 
     def set_interpreted(self, field: str, value) -> None:
         if not field in self.fields:
