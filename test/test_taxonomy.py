@@ -49,6 +49,26 @@ class TestTaxonomy(unittest.TestCase):
         self.assertTrue(records[0].is_missing("scientificNameID"))
         self.assertTrue(len(records[0].flags) == 0)
 
+    def test_external(self):
+        records = [
+            Record(scientificNameID="ncbi:399303"),
+            Record(scientificNameID="ITIS:TSN:81306"),
+            Record(scientificNameID="BOLD:642814")
+        ]
+        taxonomy.check(records)
+        self.assertTrue(records[0].get_interpreted("aphiaid") == 141433)
+        self.assertFalse(records[0].dropped)
+        self.assertFalse(records[0].is_invalid("scientificNameID"))
+        self.assertFalse(records[0].is_missing("scientificNameID"))
+        self.assertTrue(records[1].get_interpreted("aphiaid") == 141433)
+        self.assertFalse(records[1].dropped)
+        self.assertFalse(records[1].is_invalid("scientificNameID"))
+        self.assertFalse(records[1].is_missing("scientificNameID"))
+        self.assertTrue(records[2].get_interpreted("aphiaid") == 141433)
+        self.assertFalse(records[2].dropped)
+        self.assertFalse(records[2].is_invalid("scientificNameID"))
+        self.assertFalse(records[2].is_missing("scientificNameID"))
+
     def test_name_synonym(self):
         records = [
             Record(scientificName="Orca gladiator")

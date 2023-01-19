@@ -186,7 +186,7 @@ def convert_environment(env: int):
         return bool(env)
 
 
-def fetch_aphia(aphiaid, cache: AphiaCacheInterface=None):
+def fetch_aphia(aphiaid, cache: AphiaCacheInterface = None):
     """Fetch the Aphia record and classification for an AphiaID."""
     if cache is not None:
         aphia_info = cache.fetch(aphiaid)
@@ -226,7 +226,29 @@ def detect_lsid(taxa: Dict[str, AphiaInfo]) -> None:
                 taxon.aphiaid = aphiaid
 
 
-def fetch(taxa, cache: AphiaCacheInterface=None):
+def detect_external(taxa: Dict[str, AphiaInfo]) -> None:
+    """Check if scientificNameID is present and convert external identifier to Aphia ID."""
+    for taxon in taxa.values():
+        if taxon.get("scientificNameID") is not None and taxon.aphiaid is None:
+            identifier = taxon.get("scientificNameID").strip().lower()
+            numbers = re.findall(r"\d+", identifier)
+            if len(numbers) == 1:
+                type = None
+                if "tsn" in identifier or "itis" in identifier:
+                    type = "tsn"
+                elif "ncbi" in identifier:
+                    type = "ncbi"
+                elif "bold" in identifier:
+                    type = "bold"
+                if type is not None:
+                    match = pyworms.aphiaRecordByExternalID(numbers[0], type)
+                    if match is not None:
+                        taxon.aphiaid = match["AphiaID"]
+                        taxon.set_invalid("scientificNameID", False)
+                        taxon.set_flag(Flag.SCIENTIFICNAMEID_EXTERNAL)
+
+
+def fetch(taxa, cache: AphiaCacheInterface = None):
     """Fetch Aphia info from WoRMS, including alternative."""
 
     for key, taxon in taxa.items():
