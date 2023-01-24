@@ -158,7 +158,6 @@ def match_worms(taxa: Dict[str, AphiaInfo]):
         assert (len(allmatches) == len(names))
         for i in range(0, len(allmatches)):
             aphiaid = None
-            #matches = list(filter(lambda m: "status" in m and m["status"] != "uncertain", allmatches[i]))
             matches = allmatches[i]
             if matches is not None and len(matches) == 1:
                 if matches[0]["match_type"] == "exact" or matches[0]["match_type"] == "exact_subgenus":
