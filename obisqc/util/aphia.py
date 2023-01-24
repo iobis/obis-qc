@@ -6,6 +6,11 @@ from obisqc.model import AphiaCacheInterface, AphiaInfo
 from obisqc.util.flags import Flag
 from obisqc.util.status import Status
 import re
+import asyncio
+import itertools
+import time
+from math import ceil
+
 
 logger = logging.getLogger(__name__)
 
@@ -128,6 +133,25 @@ def sanitize_name(name: str) -> str:
     return name.replace("#", "")
 
 
+async def match_task(names):
+    matches = pyworms.aphiaRecordsByMatchNames(names, False)
+    return matches
+
+
+def chunk_into_n(lst, n):
+    size = ceil(len(lst) / n)
+    return list(map(lambda x: lst[x * size:x * size + size], list(range(n))))
+
+
+async def match_parallel(names):
+    if len(names) > 2:
+        parts = chunk_into_n(names, 3)
+    else:
+        parts = [names]
+    matches = await asyncio.gather(*[match_task(part) for part in parts])
+    return list(itertools.chain.from_iterable(matches))
+
+
 def match_worms(taxa: Dict[str, AphiaInfo]):
     """Try to match any records that have a scientificName but no LSID. Results from previous batches are kept in a cache."""
 
@@ -154,7 +178,14 @@ def match_worms(taxa: Dict[str, AphiaInfo]):
     # do matching (todo: support cache)
 
     if len(names) > 0:
-        allmatches = pyworms.aphiaRecordsByMatchNames(names, False)
+
+        start_time = time.time()
+        loop = asyncio.get_event_loop()
+        coroutine = match_parallel(names)
+        allmatches = loop.run_until_complete(coroutine)
+        seconds = format(time.time() - start_time, ".2f")
+        logger.debug(f"Matched {len(names)} names in {seconds} seconds")
+
         assert (len(allmatches) == len(names))
         for i in range(0, len(allmatches)):
             aphiaid = None

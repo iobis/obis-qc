@@ -12,6 +12,19 @@ logging.getLogger("obisqc.util.aphia").setLevel(logging.INFO)
 
 class TestTaxonomy(unittest.TestCase):
 
+    def test_parallel(self):
+        records = [
+            Record(data={"scientificName": "Abra1 alba"}),
+            Record(data={"scientificName": "Abra2 alba"}),
+            Record(data={"scientificName": "Abra3 alba"}),
+            Record(data={"scientificName": "Abra alba"})
+        ]
+        taxonomy.check(records)
+        self.assertIn(Flag.NO_MATCH, records[0].flags)
+        self.assertIn(Flag.NO_MATCH, records[1].flags)
+        self.assertIn(Flag.NO_MATCH, records[2].flags)
+        self.assertNotIn(Flag.NO_MATCH, records[3].flags)
+
     def test_annotations(self):
         records = [
             Record(data={"scientificName": "NA", "scientificNameID": "NA", "phylum": "Ciliophora", "class": "Ciliatea", "order": "NA", "family": "NA", "genus": "NA"}),

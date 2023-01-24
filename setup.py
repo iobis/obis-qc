@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name="obisqc",
-      version="0.8.0",
+      version="0.8.1",
       python_requires=">=3.6",
       url="https://github.com/iobis/obis-qc",
       license="MIT",
