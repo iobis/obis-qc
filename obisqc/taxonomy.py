@@ -30,7 +30,7 @@ def check_taxa(taxa: Dict[str, AphiaInfo], cache: AphiaCacheInterface=None) -> N
     fetch(taxa, cache)
 
 
-def check(records: List[Record], cache=None) -> None:
+def check(records: List[Record], cache: AphiaCacheInterface=None) -> None:
 
     # first map all input rows to sets of taxonomic information
 
