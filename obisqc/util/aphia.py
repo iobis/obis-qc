@@ -145,11 +145,20 @@ def chunk_into_n(lst, n):
 
 async def match_parallel(names):
     if len(names) > 2:
-        parts = chunk_into_n(names, 3)
+        parts = chunk_into_n(names, 5)
     else:
         parts = [names]
     matches = await asyncio.gather(*[match_task(part) for part in parts])
     return list(itertools.chain.from_iterable(matches))
+
+
+def match_obis(taxa: Dict[str, AphiaInfo], cache: AphiaCacheInterface):
+    if cache is not None:
+        allkeys = taxa.keys()
+        for key in allkeys:
+            if taxa[key].aphiaid is None and taxa[key].get("scientificName") is not None:
+                name = taxa[key].get("scientificName")
+                taxa[key].aphiaid = cache.match_name(name)
 
 
 def match_worms(taxa: Dict[str, AphiaInfo]):

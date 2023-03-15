@@ -130,3 +130,7 @@ class AphiaCacheInterface(ABC):
     @abstractmethod
     def fetch(self, aphia_id) -> AphiaInfo:
         pass
+
+    @abstractmethod
+    def match_name(self, name: str) -> int:
+        pass

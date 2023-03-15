@@ -1,6 +1,6 @@
 from typing import Dict, List
 from obisqc.model import Record
-from obisqc.util.aphia import match_worms, check_annotated_list, fetch, detect_lsid, detect_external
+from obisqc.util.aphia import match_worms, match_obis, check_annotated_list, fetch, detect_lsid, detect_external
 import logging
 from obisqc.model import AphiaCacheInterface, AphiaInfo, Taxon
 from obisqc.util.flags import Flag
@@ -25,6 +25,7 @@ def check_taxa(taxa: Dict[str, AphiaInfo], cache: AphiaCacheInterface=None) -> N
     check_fields(taxa)
     detect_lsid(taxa)
     detect_external(taxa)
+    match_obis(taxa, cache)
     match_worms(taxa)
     check_annotated_list(taxa)
     fetch(taxa, cache)

@@ -22,13 +22,17 @@ class DummyCache:
                     "scientificname": "Abra alba",
                     "status": "accepted",
                     "valid_AphiaID": 141433,
-                    "isMarine": False, # modified for testing purposes
-                    "isBrackish": False, # modified for testing purposes
+                    "isMarine": True,
+                    "isBrackish": True,
                     "isFreshwater": None,
                     "isTerrestrial": None
                 },
                 "classification": {}
             }
+
+    def match_name(self, name) -> int:
+        if name == "Abra alba":
+            return 141433
 
 
 class TestTaxonomyCache(unittest.TestCase):
@@ -40,7 +44,16 @@ class TestTaxonomyCache(unittest.TestCase):
         records = [
             Record(scientificNameID="urn:lsid:marinespecies.org:taxname:141433")
         ]
-        taxonomy.check(records)
+        taxonomy.check(records, self.cache)
+        self.assertTrue(records[0].get_interpreted("aphiaid") == 141433)
+        self.assertFalse(records[0].dropped)
+        self.assertNotIn(Flag.NOT_MARINE, records[0].flags)
+
+    def test_match(self):
+        records = [
+            Record(scientificName="Abra alba")
+        ]
+        taxonomy.check(records, self.cache)
         self.assertTrue(records[0].get_interpreted("aphiaid") == 141433)
         self.assertFalse(records[0].dropped)
         self.assertNotIn(Flag.NOT_MARINE, records[0].flags)

@@ -1,6 +1,6 @@
 from obisqc import absence
 from obisqc import fields
-#from obisqc import mof_fields
+from obisqc import mof_fields
 from obisqc import location
 from obisqc import taxonomy
 from obisqc import time

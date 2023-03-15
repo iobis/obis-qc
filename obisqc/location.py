@@ -140,14 +140,14 @@ def check_xy(record: Record, xy: Dict) -> None:
         record.set_interpreted("bathymetry", round(xy["grids"]["bathymetry"], 2))
 
 
-def check(records: List[Record], xylookup: bool=False) -> None:
+def check(records: List[Record], xylookup: bool = False) -> None:
     for record in records:
         check_record(record)
     if xylookup:
         xy = misc.do_xylookup(records)
-        assert(len(xy) == len(records))
+        assert len(xy) == len(records)
         for i in range(len(records)):
             if xy[i] is not None:
                 check_xy(records[i], xy[i])
             else:
-                logger.warning("No xylookup result for record")
+                logger.debug("No xylookup result for record")
