@@ -1,13 +1,21 @@
 from __future__ import annotations
-from tarfile import RECORDSIZE
-from typing import Dict, List
+from typing import Any, Dict, List
 from obisqc.util.flags import Flag
 import hashlib
 import json
 from abc import ABC, abstractmethod
 
 
-TAXONOMY_FIELDS = ["aphiaid", "unaccepted", "taxonID", "scientificNameID", "acceptedNameUsageID", "parentNameUsageID", "originalNameUsageID", "taxonConceptID", "scientificName", "acceptedNameUsage", "parentNameUsage", "originalNameUsage", "higherClassification", "kingdom", "phylum", "class", "order", "family", "subfamily", "genus", "genericName", "subgenus", "infragenericEpithet", "specificEpithet", "infraspecificEpithet", "cultivarEpithet", "taxonRank", "verbatimTaxonRank", "scientificNameAuthorship", "vernacularName", "nomenclaturalCode", "taxonomicStatus", "nomenclaturalStatus", "marine", "brackish"]
+RANKS = [
+    "kingdom", "subkingdom", "infrakingdom", "phylum", "phylum (division)", "subphylum",
+    "subphylum (subdivision)", "infraphylum", "parvphylum", "gigaclass", "megaclass", "superclass", "class",
+    "subclass", "infraclass", "subterclass", "division", "subdivision", "superorder", "order", "suborder",
+    "infraorder", "parvorder", "section", "subsection", "superfamily", "family", "subfamily", "supertribe",
+    "tribe", "subtribe", "genus", "subgenus", "species", "subspecies", "variety", "subvariety", "forma",
+    "subforma"
+]
+RANK_IDS = [r + "id" for r in RANKS]
+TAXONOMY_FIELDS = RANKS + RANK_IDS + ["aphiaid", "unaccepted", "taxonID", "scientificNameID", "acceptedNameUsageID", "parentNameUsageID", "originalNameUsageID", "taxonConceptID", "scientificName", "acceptedNameUsage", "parentNameUsage", "originalNameUsage", "higherClassification", "genericName", "infragenericEpithet", "specificEpithet", "infraspecificEpithet", "cultivarEpithet", "taxonRank", "verbatimTaxonRank", "scientificNameAuthorship", "vernacularName", "nomenclaturalCode", "taxonomicStatus", "nomenclaturalStatus", "marine", "brackish", "redlist_category", "hab", "wrims"]
 
 
 class Field:
@@ -31,6 +39,7 @@ class Record:
         self.fields: Dict[str, Field] = {}
         self.flags: List[Flag] = []
         self.extensions: Dict[str, List[Record]] = {}
+        self.extras: Dict[str, Any] = {}
 
         if data is not None:
             for key, value in data.items():
@@ -39,20 +48,20 @@ class Record:
         for key, value in kwargs.items():
             self.set(key, value)
 
-    def get(self, field:str):
+    def get(self, field: str):
         return self.fields[field].verbatim if field in self.fields else None
 
-    def set(self, field:str, value) -> None:
+    def set(self, field: str, value) -> None:
         self.fields[field] = Field(value if value != "" else None)
 
-    def get_interpreted(self, field:str):
+    def get_interpreted(self, field: str):
         return self.fields[field].interpreted if field in self.fields and hasattr(self.fields[field], "interpreted") else None
 
-    def has_interpreted(self, field:str):
+    def has_interpreted(self, field: str):
         return field in self.fields and hasattr(self.fields[field], "interpreted")
 
     def set_interpreted(self, field: str, value) -> None:
-        if not field in self.fields:
+        if field not in self.fields:
             self.fields[field] = Field(interpreted=value)
         else:
             self.fields[field].interpreted = value
@@ -60,8 +69,8 @@ class Record:
     def is_missing(self, field: str) -> bool:
         return self.fields[field].missing if field in self.fields else False
 
-    def set_missing(self, field: str, value: bool=True) -> None:
-        if not field in self.fields:
+    def set_missing(self, field: str, value: bool = True) -> None:
+        if field not in self.fields:
             self.fields[field] = Field(missing=value)
         else:
             self.fields[field].missing = value
@@ -69,8 +78,8 @@ class Record:
     def is_invalid(self, field: str) -> bool:
         return self.fields[field].invalid
 
-    def set_invalid(self, field: str, value: bool=True):
-        if not field in self.fields:
+    def set_invalid(self, field: str, value: bool = True):
+        if field not in self.fields:
             self.fields[field] = Field(invalid=value)
         else:
             self.fields[field].invalid = value
@@ -113,12 +122,15 @@ class Taxon(Record):
 
 class AphiaInfo:
 
-    def __init__(self, record: Dict=None, classification: Dict=None, bold_id: str=None, ncbi_id: str=None, distribution: Dict=None):
+    def __init__(self, record: Dict = None, classification: Dict = None, bold_id: str = None, ncbi_id: str = None, distribution: Dict = None, redlist_category: str = None, hab: bool = None, wrims: bool = None):
         self.record = record
         self.classification = classification
         self.bold_id = bold_id
         self.ncbi_id = ncbi_id
         self.distribution = self.distribution
+        self.redlist_category = self.redlist_category
+        self.hab = self.hab
+        self.wrims = self.wrims
 
 
 class AphiaCacheInterface(ABC):

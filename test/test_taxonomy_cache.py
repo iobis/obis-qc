@@ -29,6 +29,19 @@ class DummyCache:
                 },
                 "classification": {}
             }
+        elif str(aphiaid) == "160528":
+            return {
+                "record": {
+                    "AphiaID": 160528,
+                    "scientificname": "Pseudo-nitzschia pungens",
+                    "status": "accepted",
+                    "isMarine": True,
+                    "isBrackish": True,
+                },
+                "classification": {},
+                "hab": True,
+                "wrims": True
+            }
 
     def match_name(self, name) -> int:
         if name == "Abra alba":
@@ -39,6 +52,14 @@ class TestTaxonomyCache(unittest.TestCase):
 
     def setUp(self):
         self.cache = DummyCache()
+
+    def test_hab_wrims(self):
+        records = [
+            Record(data={"scientificName": "Pseudo-nitzschia pungens"}),
+        ]
+        taxonomy.check(records, self.cache)
+        self.assertTrue(records[0].get_interpreted("hab"))
+        self.assertTrue(records[0].get_interpreted("wrims"))
 
     def test_cache(self):
         records = [

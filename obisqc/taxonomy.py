@@ -1,5 +1,5 @@
 from typing import Dict, List
-from obisqc.model import Record
+from obisqc.model import Record, RANKS, RANK_IDS
 from obisqc.util.aphia import match_worms, match_obis, check_annotated_list, fetch, detect_lsid, detect_external
 import logging
 from obisqc.model import AphiaCacheInterface, AphiaInfo, Taxon
@@ -19,7 +19,7 @@ def check_fields(taxa: Dict[str, AphiaInfo]) -> None:
             taxon.set_missing("scientificNameID")
 
 
-def check_taxa(taxa: Dict[str, AphiaInfo], cache: AphiaCacheInterface=None) -> None:
+def check_taxa(taxa: Dict[str, AphiaInfo], cache: AphiaCacheInterface = None) -> None:
     """Run all steps for taxonomic quality control."""
 
     check_fields(taxa)
@@ -31,7 +31,7 @@ def check_taxa(taxa: Dict[str, AphiaInfo], cache: AphiaCacheInterface=None) -> N
     fetch(taxa, cache)
 
 
-def check(records: List[Record], cache: AphiaCacheInterface=None) -> None:
+def check(records: List[Record], cache: AphiaCacheInterface = None) -> None:
 
     # first map all input rows to sets of taxonomic information
 
@@ -58,54 +58,50 @@ def check(records: List[Record], cache: AphiaCacheInterface=None) -> None:
     for hash, taxon in taxa.items():
 
         if taxon.aphia_info is None:
-
-            # no Aphia record found
-
             taxon.set_flag(Flag.NO_MATCH)
             taxon.dropped = True
-
             if taxon.get("scientificNameID") is not None:
                 taxon.set_invalid("scientificNameID")
 
         else:
 
+            master_aphia_info = None
             taxon.dropped = False
 
-            # Aphia record found
-
             if not is_accepted(taxon.aphia_info):
-
-                # not accepted
-
                 if taxon.aphia_info_accepted is not None:
-
-                    # alternative provided
-
-                    taxon.set_interpreted("aphiaid", int(taxon.aphia_info_accepted["record"]["AphiaID"]))
                     taxon.set_interpreted("unaccepted", int(taxon.aphia_info["record"]["AphiaID"]))
-                    taxon.set_interpreted("marine", convert_environment(taxon.aphia_info_accepted["record"]["isMarine"]))
-                    taxon.set_interpreted("brackish", convert_environment(taxon.aphia_info_accepted["record"]["isBrackish"]))
-
+                    master_aphia_info = taxon.aphia_info_accepted
                 else:
-
-                    # no alternative provided
-
                     taxon.set_flag(Flag.NO_ACCEPTED_NAME)
-
-                    taxon.set_interpreted("aphiaid", int(taxon.aphia_info["record"]["AphiaID"]))
-                    taxon.set_interpreted("marine", convert_environment(taxon.aphia_info["record"]["isMarine"]))
-                    taxon.set_interpreted("brackish", convert_environment(taxon.aphia_info["record"]["isBrackish"]))
-
+                    taxon.set_interpreted("unaccepted", None)
+                    master_aphia_info = taxon.aphia_info
             else:
-
-                # accepted
-
-                taxon.set_interpreted("aphiaid", int(taxon.aphia_info["record"]["AphiaID"]))
                 taxon.set_interpreted("unaccepted", None)
-                taxon.set_interpreted("marine", convert_environment(taxon.aphia_info["record"]["isMarine"]))
-                taxon.set_interpreted("brackish", convert_environment(taxon.aphia_info["record"]["isBrackish"]))
+                master_aphia_info = taxon.aphia_info
 
-            # marine flag
+            # populate other fields
+
+            taxon.set_interpreted("scientificName", master_aphia_info["record"]["scientificname"])
+            taxon.set_interpreted("aphiaid", int(master_aphia_info["record"]["AphiaID"]))
+            taxon.set_interpreted("marine", convert_environment(master_aphia_info["record"]["isMarine"]))
+            taxon.set_interpreted("brackish", convert_environment(master_aphia_info["record"]["isBrackish"]))
+
+            if "hab" in master_aphia_info:
+                taxon.set_interpreted("hab", master_aphia_info["hab"])
+            if "wrims" in master_aphia_info:
+                taxon.set_interpreted("wrims", master_aphia_info["wrims"])
+            if "redlist_category" in master_aphia_info:
+                taxon.set_interpreted("redlist_category", master_aphia_info["redlist_category"])
+
+            for rank in RANKS:
+                if rank in master_aphia_info["classification"]:
+                    taxon.set_interpreted(rank, master_aphia_info["classification"][rank])
+            for rank_id in RANK_IDS:
+                if rank_id in master_aphia_info["classification"]:
+                    taxon.set_interpreted(rank_id, master_aphia_info["classification"][rank_id])
+
+            # derive marine flag
 
             if taxon.get_interpreted("marine") is False and taxon.get_interpreted("brackish") is False:
                 taxon.set_flag(Flag.NOT_MARINE)
