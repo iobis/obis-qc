@@ -86,6 +86,7 @@ def check(records: List[Record], cache: AphiaCacheInterface = None) -> None:
             taxon.set_interpreted("aphiaid", int(master_aphia_info["record"]["AphiaID"]))
             taxon.set_interpreted("marine", convert_environment(master_aphia_info["record"]["isMarine"]))
             taxon.set_interpreted("brackish", convert_environment(master_aphia_info["record"]["isBrackish"]))
+            taxon.set_interpreted("terrestrial", convert_environment(master_aphia_info["record"]["isTerrestrial"]))
 
             if "hab" in master_aphia_info:
                 taxon.set_interpreted("hab", master_aphia_info["hab"])
