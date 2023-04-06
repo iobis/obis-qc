@@ -37,6 +37,8 @@ class DummyCache:
                     "status": "accepted",
                     "isMarine": True,
                     "isBrackish": True,
+                    "isFreshwater": None,
+                    "isTerrestrial": None
                 },
                 "classification": {},
                 "hab": True,
