@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 
 
 RANKS = [
-    "kingdom", "subkingdom", "infrakingdom", "phylum", "phylum (division)", "subphylum",
+    "superdomain", "domain", "kingdom", "subkingdom", "infrakingdom", "phylum", "phylum (division)", "subphylum",
     "subphylum (subdivision)", "infraphylum", "parvphylum", "gigaclass", "megaclass", "superclass", "class",
     "subclass", "infraclass", "subterclass", "division", "subdivision", "superorder", "order", "suborder",
     "infraorder", "parvorder", "section", "subsection", "superfamily", "family", "subfamily", "supertribe",
