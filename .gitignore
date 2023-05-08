@@ -9,3 +9,6 @@ __pycache__
 .idea
 cover
 .DS_Store
+.env
+scripts
+
