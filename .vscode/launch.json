@@ -16,6 +16,15 @@
             "program": "test.py",
             "console": "integratedTerminal",
             "env": {"PYTHONPATH": "${workspaceFolder}"}
-        }
+        },
+        {
+            "name": "Script: dev",
+            "type": "python",
+            "request": "launch",
+            "program": "scripts/dev.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {"PYTHONPATH": "${workspaceFolder}"}
+        },   
     ]
 }

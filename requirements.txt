@@ -1,3 +1,5 @@
 git+https://github.com/pieterprovoost/isodateparser.git
 git+https://github.com/iobis/pyworms.git@0.3.0
 git+https://github.com/iobis/pyxylookup.git
+git+https://github.com/iobis/names-sync.git@0.1.0
+diskcache==5.6.1

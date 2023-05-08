@@ -1,13 +1,7 @@
 import unittest
 from obisqc import taxonomy
-import logging
 from obisqc.util.flags import Flag
 from obisqc.model import Record
-
-
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)-12s %(levelname)-8s %(message)s", datefmt="%H:%M:%S")
-logging.getLogger("urllib3").setLevel(logging.INFO)
-logging.getLogger("obisqc.util.aphia").setLevel(logging.INFO)
 
 
 class TestTaxonomy(unittest.TestCase):

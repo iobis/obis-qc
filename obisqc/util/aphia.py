@@ -10,6 +10,9 @@ import asyncio
 import itertools
 import time
 from math import ceil
+from namessync.vliz import VlizSession
+import os
+from diskcache import Cache
 
 
 logger = logging.getLogger(__name__)
@@ -35,7 +38,8 @@ def parse_scientificnameid(input: str) -> int:
             return None
 
 
-def get_annotated_list() -> None:
+def populate_annotated_list_deprecated() -> None:
+    logger.info("Fetching annotated names list from OBIS")
     global annotated_list
     response = requests.get("https://api.obis.org/taxon/annotations")
     if response.status_code == 200:
@@ -51,7 +55,57 @@ def get_annotated_list() -> None:
     raise RuntimeError("Cannot access annotated list")
 
 
+def populate_annotated_list_vliz() -> None:
+    global annotated_list
+
+    with Cache(os.path.expanduser("~/.obisqc/cache")) as cache:
+        annotated_list = cache.get("annotated_list")
+        if annotated_list is not None:
+            logger.info("Using annotated names from cache")
+        else:
+            logger.info("Annotated names list not found in cache")
+            session = VlizSession()
+            res = session.fetch_annotated_list()
+            if len(res) > 0:
+                annotated_list = dict()
+                for entry in res:
+                    if entry["scientificName"] not in annotated_list:
+                        annotated_list[entry["scientificName"]] = list()
+                    if "annotation" in entry and entry["annotation"] is not None:
+                        annotated_list[entry["scientificName"]].append({
+                            "scientificname": entry["scientificName"],
+                            "annotation_type": entry["annotation"]["type"]["name"],
+                            "annotation_comment": entry["annotation"]["comment"],
+                            "annotation_resolved_aphiaid": str(entry["annotation"]["aphiaId"]) if entry["annotation"]["aphiaId"] is not None else None,
+                            "scientificnameid": f"http://www.marinespecies.org/aphia.php?p=taxdetails&id={entry['annotation']['aphiaId']}" if entry["annotation"]["aphiaId"] is not None else None,
+                            "phylum": entry["phylum"],
+                            "class": entry["class"],
+                            "order": entry["order"],
+                            "family": entry["family"],
+                            "genus": entry["genus"]
+                        })
+                cache.set("annotated_list", annotated_list, expire=60 * 60 * 24 * 7)
+
+
+def populate_annotated_list() -> None:
+    logger.info("Fetching annotated list")
+    if os.getenv("USE_VLIZ_ANNOTATED_LIST") == "true":
+        populate_annotated_list_vliz()
+    else:
+        populate_annotated_list_deprecated()
+    logger.info(f"Fetched annotated list with {len(annotated_list)} names")
+
+
+def get_annotated_list() -> list:
+    if annotated_list is None:
+        populate_annotated_list()
+    return annotated_list
+
+
 def check_annotated_list(taxa):
+
+    if annotated_list is None:
+        populate_annotated_list()
 
     for key, taxon in taxa.items():
         if taxon.get("scientificName") is not None and taxon.aphiaid is None:
@@ -235,6 +289,8 @@ def fetch_aphia(aphiaid, cache: AphiaCacheInterface = None):
     # no cache or no cache result
 
     record = pyworms.aphiaRecordByAphiaID(aphiaid)
+    if record is not None:
+        assert record["rank"] is not None and record["rank"] != ""
     classification = pyworms.aphiaClassificationByAphiaID(aphiaid)
     bold_id = pyworms.aphiaExternalIDByAphiaID(aphiaid, "bold")
     ncbi_id = pyworms.aphiaExternalIDByAphiaID(aphiaid, "ncbi")
@@ -309,6 +365,3 @@ def fetch(taxa, cache: AphiaCacheInterface = None):
                         pass
                     else:
                         taxon.aphia_info_accepted = aphia_info_accepted
-
-
-get_annotated_list()
