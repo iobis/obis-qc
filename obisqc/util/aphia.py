@@ -248,7 +248,7 @@ def fetch_aphia(aphiaid, cache: AphiaCacheInterface = None):
         "ncbi_id": ncbi_id,
         "distribution": distribution
     }
-    if cache is not None:
+    if cache is not None and record is not None and classification is not None:
         # cache did not have this info, storing it now
         cache.store(aphiaid, aphia_info)
     return aphia_info
