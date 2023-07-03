@@ -139,7 +139,7 @@ class TestTaxonomy(unittest.TestCase):
 
     def test_id_non_existing(self):
         records = [
-            Record(scientificNameID="urn:lsid:marinespecies.org:taxname:99999999")
+            Record(scientificNameID="urn:lsid:marinespecies.org:taxname:968")
         ]
         taxonomy.check(records)
         self.assertFalse(records[0].is_missing("scientificNameID"))
