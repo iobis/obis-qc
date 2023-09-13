@@ -28,9 +28,7 @@ class TestTime(unittest.TestCase):
     def test_min_date(self):
         records = [
             Record(eventDate="1870-01-01T00:00:00"),
-            Record(eventDate="0001-04-11")
         ]
-
         time.check(records, min_year=1900)
         self.assertTrue(records[0].get_interpreted("date_start") is None)
         self.assertTrue(records[0].get_interpreted("date_mid") is None)
@@ -39,13 +37,27 @@ class TestTime(unittest.TestCase):
         self.assertTrue(records[0].is_invalid("eventDate"))
         self.assertFalse(records[0].dropped)
 
+        records = [
+            Record(eventDate="0001-04-11"),
+        ]
         time.check(records, min_year=1000)
-        self.assertTrue(records[1].get_interpreted("date_start") is None)
-        self.assertTrue(records[1].get_interpreted("date_mid") is None)
-        self.assertTrue(records[1].get_interpreted("date_end") is None)
-        self.assertIn(Flag.DATE_BEFORE_MIN, records[1].flags)
-        self.assertTrue(records[1].is_invalid("eventDate"))
-        self.assertFalse(records[1].dropped)
+        self.assertTrue(records[0].get_interpreted("date_start") is None)
+        self.assertTrue(records[0].get_interpreted("date_mid") is None)
+        self.assertTrue(records[0].get_interpreted("date_end") is None)
+        self.assertIn(Flag.DATE_BEFORE_MIN, records[0].flags)
+        self.assertTrue(records[0].is_invalid("eventDate"))
+        self.assertFalse(records[0].dropped)
+
+        records = [
+            Record(eventDate="1590-04-11"),
+        ]
+        time.check(records)
+        self.assertTrue(records[0].get_interpreted("date_start") is not None)
+        self.assertTrue(records[0].get_interpreted("date_mid") is not None)
+        self.assertTrue(records[0].get_interpreted("date_end") is not None)
+        self.assertNotIn(Flag.DATE_BEFORE_MIN, records[0].flags)
+        self.assertFalse(records[0].is_invalid("eventDate"))
+        self.assertFalse(records[0].dropped)
 
     def test_future_date(self):
         records = [

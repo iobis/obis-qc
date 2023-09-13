@@ -13,7 +13,7 @@ def date_to_millis(d) -> int:
     return int((d - datetime.date(1970, 1, 1)).total_seconds() * 1000)
 
 
-def check_record(record: Record, min_year: int=0):
+def check_record(record: Record, min_year: int = 1582):
     """Check the eventDate."""
 
     if record.get("eventDate") is not None:
@@ -49,5 +49,5 @@ def check_record(record: Record, min_year: int=0):
         record.set_missing("eventDate")
 
 
-def check(records: List[Record], min_year: int = 0):
+def check(records: List[Record], min_year: int = 1582):
     return [check_record(record, min_year) for record in records]
