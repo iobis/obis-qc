@@ -14,7 +14,7 @@ def check_record(record: Record) -> None:
     # coordinate uncertainty
 
     if record.get("coordinateUncertaintyInMeters") is not None:
-        unc_check = misc.check_float(record.get("coordinateUncertaintyInMeters"), [0, 10000000])
+        unc_check = misc.check_float(record.get("coordinateUncertaintyInMeters"), [1, 20037509])
         if not unc_check["valid"]:
             record.set_invalid("coordinateUncertaintyInMeters")
         else:

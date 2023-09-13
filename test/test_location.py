@@ -77,12 +77,14 @@ class TestLocation(unittest.TestCase):
     def test_uncertainty(self):
         records = [
             Record(coordinateUncertaintyInMeters=100, decimalLongitude=1, decimalLatitude=0),
-            Record(decimalLongitude=1, decimalLatitude=0)
+            Record(decimalLongitude=1, decimalLatitude=0),
+            Record(coordinateUncertaintyInMeters=0, decimalLongitude=1, decimalLatitude=0),
         ]
         location.check(records)
         self.assertFalse(records[0].is_missing("coordinateUncertaintyInMeters"))
         self.assertTrue(records[0].get_interpreted("coordinateUncertaintyInMeters") == 100)
         self.assertTrue(records[1].is_missing("coordinateUncertaintyInMeters"))
+        self.assertTrue(records[2].is_invalid("coordinateUncertaintyInMeters"))
 
     def test_depth_parsing(self):
         records = [
