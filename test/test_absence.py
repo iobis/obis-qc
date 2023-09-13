@@ -46,6 +46,14 @@ class TestAbsence(unittest.TestCase):
         self.assertFalse(records[0].absence)
         self.assertTrue(records[0].is_invalid("individualCount"))
 
+    def test_occurrencestatus_invalid(self):
+        records = [
+            Record(individualCount=0, occurrenceStatus="present")
+        ]
+        absence.check(records)
+        self.assertTrue(records[0].absence)
+        self.assertTrue(records[0].is_invalid("occurrenceStatus"))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -12,16 +12,6 @@ def check_record(record: Record) -> None:
 
     record.absence = False
 
-    # occurrenceStatus
-
-    if record.get("occurrenceStatus") is not None:
-        if record.get("occurrenceStatus").lower() == "absent":
-            record.absence = True
-        elif record.get("occurrenceStatus").lower() != "present":
-            record.set_invalid("occurrenceStatus")
-    else:
-        record.set_missing("occurrenceStatus")
-
     # individualCount
 
     if record.get("individualCount") is not None:
@@ -31,6 +21,20 @@ def check_record(record: Record) -> None:
         else:
             if count_check["float"] == 0:
                 record.absence = True
+
+    # occurrenceStatus
+
+    if record.get("occurrenceStatus") is not None:
+        if record.get("occurrenceStatus").lower() == "absent":
+            record.absence = True
+        elif record.get("occurrenceStatus").lower() == "present":
+            if record.absence:
+                # individualCount is 0 but occurrenceStatus is present
+                record.set_invalid("occurrenceStatus")
+        else:
+            record.set_invalid("occurrenceStatus")
+    else:
+        record.set_missing("occurrenceStatus")
 
 
 def check(records: List[Record]):
