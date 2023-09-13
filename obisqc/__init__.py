@@ -11,6 +11,6 @@ from typing import List
 def check(records: List[Record], xylookup: bool = False, cache: AphiaCacheInterface = None):
     absence.check(records)
     fields.check(records)
-    time.check(records, min_year=1500)
+    time.check(records, min_year=1582)
     taxonomy.check(records, cache)
     location.check(records, xylookup=xylookup)

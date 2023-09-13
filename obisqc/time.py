@@ -49,5 +49,5 @@ def check_record(record: Record, min_year: int=0):
         record.set_missing("eventDate")
 
 
-def check(records: List[Record], min_year: int=0):
+def check(records: List[Record], min_year: int = 0):
     return [check_record(record, min_year) for record in records]
