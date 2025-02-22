@@ -1,6 +1,6 @@
-import nose
+import pytest
 import logging
 
 logger = logging.getLogger("isodateparser").setLevel(logging.INFO)
 
-nose.run()
+pytest.main(["test/test_taxonomy.py::TestTaxonomy"])

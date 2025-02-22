@@ -2,19 +2,18 @@ from typing import Dict
 import pyworms
 import logging
 import requests
-from obisqc.model import AphiaCacheInterface, AphiaInfo
+from obisqc.model import AphiaInfo
 from obisqc.util.flags import Flag
 from obisqc.util.status import Status
 import re
-import asyncio
-import itertools
-import time
 from math import ceil
+import sqlite3
+from gnparser import parse_to_string
+import json
+import os
 
 
 logger = logging.getLogger(__name__)
-
-match_cache: Dict[str, int] = {}
 annotated_list = None
 
 
@@ -143,28 +142,41 @@ def chunk_into_n(lst, n):
     return list(map(lambda x: lst[x * size:x * size + size], list(range(n))))
 
 
-async def match_parallel(names):
-    if len(names) > 2:
-        parts = chunk_into_n(names, 5)
-    else:
-        parts = [names]
-    matches = await asyncio.gather(*[match_task(part) for part in parts])
-    return list(itertools.chain.from_iterable(matches))
+def match_with_sqlite(names: list[str]):
 
+    results = []
 
-def match_obis(taxa: Dict[str, AphiaInfo], cache: AphiaCacheInterface):
-    if cache is not None:
-        allkeys = taxa.keys()
-        for key in allkeys:
-            if taxa[key].aphiaid is None and taxa[key].get("scientificName") is not None:
-                name = taxa[key].get("scientificName")
-                taxa[key].aphiaid = cache.match_name(name)
+    con = sqlite3.connect(os.getenv("WORMS_DB_PATH"))
+    con.row_factory = sqlite3.Row
+    cur = con.cursor()
+
+    for name in names:
+        parsed_str = parse_to_string(name, "compact", None, 1, 1)
+        parsed = json.loads(parsed_str)
+        if parsed.get("parsed"):
+            canonical = parsed.get("canonical", None).get("full", None)
+            authorship = parsed.get("authorship", {}).get("normalized", None)
+            cur.execute("select * from parsed where canonical = ?", (canonical,))
+            matches = cur.fetchall()
+            all_matches = [{
+                "aphiaid": match_dict["aphiaid"],
+                "scientificname": match_dict["canonical"],
+                "authorship": match_dict["authorship"],
+            } for match_dict in [dict(match) for match in matches]]
+            if len(all_matches) > 1:
+                matches = [match for match in all_matches if match["authorship"] == authorship]
+            else:
+                matches = all_matches
+        else:
+            matches = []
+        results.append(matches)
+
+    con.close()
+    return results
 
 
 def match_worms(taxa: Dict[str, AphiaInfo]):
-    """Try to match any records that have a scientificName but no LSID. Results from previous batches are kept in a cache."""
-
-    logger.debug("There are %s names in match cache" % (len(match_cache.keys())))
+    """Try to match any records that have a scientificName but no LSID."""
 
     # gather all keys and names that need matching (no LSID, not in matching cache)
 
@@ -174,37 +186,26 @@ def match_worms(taxa: Dict[str, AphiaInfo]):
     for key in allkeys:
         if taxa[key].aphiaid is None and taxa[key].get("scientificName") is not None:
             name = taxa[key].get("scientificName")
-            if name in match_cache:
-                taxa[key].aphiaid = match_cache[name]
-            else:
-                keys.append(key)
-                names.append(name)
+            keys.append(key)
+            names.append(name)
 
     # sanitize
 
     names = [sanitize_name(name) for name in names]
 
-    # do matching (todo: support cache)
+    # do matching
 
     if len(names) > 0:
 
-        start_time = time.time()
-        loop = asyncio.get_event_loop()
-        coroutine = match_parallel(names)
-        allmatches = loop.run_until_complete(coroutine)
-        seconds = format(time.time() - start_time, ".2f")
-        logger.debug(f"Matched {len(names)} names in {seconds} seconds")
+        matches = match_with_sqlite(names)
 
-        assert (len(allmatches) == len(names))
-        for i in range(0, len(allmatches)):
-            aphiaid = None
-            matches = allmatches[i]
-            if matches is not None and len(matches) == 1:
-                if matches[0]["match_type"] == "exact" or matches[0]["match_type"] == "exact_subgenus":
-                    if matches[0]["AphiaID"] is not None:
-                        aphiaid = int(matches[0]["AphiaID"])
-            taxa[keys[i]].aphiaid = aphiaid
-            match_cache[names[i]] = aphiaid
+        assert (len(matches) == len(names))
+        for i in range(0, len(matches)):
+            name_matches = matches[i]
+            if name_matches is not None and len(name_matches) == 1:
+                taxa[keys[i]].aphiaid = int(name_matches[0]["aphiaid"])
+            else:
+                taxa[keys[i]].aphiaid = None
 
 
 def has_alternative(aphia_info: AphiaInfo):
@@ -225,32 +226,29 @@ def convert_environment(env: int):
         return bool(env)
 
 
-def fetch_aphia(aphiaid, cache: AphiaCacheInterface = None):
-    """Fetch the Aphia record and classification for an AphiaID."""
-    if cache is not None:
-        aphia_info = cache.fetch(aphiaid)
-        if aphia_info is not None:
-            # cache has result, return
-            return aphia_info
-    # no cache or no cache result
+def fetch_aphia(aphiaid):
+    """Fetch the Aphia record an AphiaID."""
 
-    record = pyworms.aphiaRecordByAphiaID(aphiaid)
-    classification = pyworms.aphiaClassificationByAphiaID(aphiaid)
+    con = sqlite3.connect(os.getenv("WORMS_DB_PATH"))
+    con.row_factory = sqlite3.Row
+    cur = con.cursor()
+    cur.execute("select * from parsed where aphiaid = ?", (aphiaid,))
+    res = cur.fetchone()
+    con.close()
+    if res is None:
+        return {"record": None}
+    record = json.loads(res["record"])
+
+    # TODO: get ids into sqlite
     bold_id = pyworms.aphiaExternalIDByAphiaID(aphiaid, "bold")
     ncbi_id = pyworms.aphiaExternalIDByAphiaID(aphiaid, "ncbi")
-    distribution = pyworms.aphiaDistributionsByAphiaID(aphiaid)
     bold_id = bold_id[0] if bold_id is not None and isinstance(bold_id, list) and len(bold_id) > 0 else None
     ncbi_id = ncbi_id[0] if ncbi_id is not None and isinstance(ncbi_id, list) and len(ncbi_id) > 0 else None
     aphia_info = {
         "record": record,
-        "classification": classification,
         "bold_id": bold_id,
-        "ncbi_id": ncbi_id,
-        "distribution": distribution
+        "ncbi_id": ncbi_id
     }
-    if cache is not None and record is not None and classification is not None:
-        # cache did not have this info, storing it now
-        cache.store(aphiaid, aphia_info)
     return aphia_info
 
 
@@ -287,7 +285,7 @@ def detect_external(taxa: Dict[str, AphiaInfo]) -> None:
                         taxon.set_flag(Flag.SCIENTIFICNAMEID_EXTERNAL)
 
 
-def fetch(taxa, cache: AphiaCacheInterface = None):
+def fetch(taxa):
     """Fetch Aphia info from WoRMS, including alternative."""
 
     for key, taxon in taxa.items():
@@ -295,8 +293,8 @@ def fetch(taxa, cache: AphiaCacheInterface = None):
         # TODO: fetch all aphia info records including alternatives in one go
 
         if taxon.aphiaid is not None:
-            aphia_info = fetch_aphia(taxon.aphiaid, cache)
-            if aphia_info["record"] is None or aphia_info["classification"] is None:
+            aphia_info = fetch_aphia(taxon.aphiaid)
+            if aphia_info["record"] is None:
                 pass
             else:
                 taxon.aphia_info = aphia_info
@@ -304,8 +302,8 @@ def fetch(taxa, cache: AphiaCacheInterface = None):
 
                     # alternative provided
 
-                    aphia_info_accepted = fetch_aphia(taxon.aphia_info["record"]["valid_AphiaID"], cache)
-                    if aphia_info_accepted["record"] is None or aphia_info_accepted["classification"] is None:
+                    aphia_info_accepted = fetch_aphia(taxon.aphia_info["record"]["valid_AphiaID"])
+                    if aphia_info_accepted["record"] is None:
                         pass
                     else:
                         taxon.aphia_info_accepted = aphia_info_accepted

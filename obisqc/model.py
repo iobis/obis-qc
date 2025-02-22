@@ -124,25 +124,10 @@ class AphiaInfo:
 
     def __init__(self, record: Dict = None, classification: Dict = None, bold_id: str = None, ncbi_id: str = None, distribution: Dict = None, redlist_category: str = None, hab: bool = None, wrims: bool = None):
         self.record = record
-        self.classification = classification
+        # self.classification = classification
         self.bold_id = bold_id
         self.ncbi_id = ncbi_id
         self.distribution = self.distribution
         self.redlist_category = self.redlist_category
         self.hab = self.hab
         self.wrims = self.wrims
-
-
-class AphiaCacheInterface(ABC):
-
-    @abstractmethod
-    def store(self, aphia_info: AphiaInfo) -> None:
-        pass
-
-    @abstractmethod
-    def fetch(self, aphia_id) -> AphiaInfo:
-        pass
-
-    @abstractmethod
-    def match_name(self, name: str) -> int:
-        pass

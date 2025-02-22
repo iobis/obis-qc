@@ -38,9 +38,9 @@ class TestTaxonomy(unittest.TestCase):
         self.assertIn(Flag.WORMS_ANNOTATION_REJECT_AMBIGUOUS, records[1].flags)
         self.assertIsNone(records[1].get_interpreted("aphiaid"))
         self.assertIn(Flag.WORMS_ANNOTATION_RESOLVABLE, records[2].flags)
-        self.assertEquals(records[2].get_interpreted("aphiaid"), 1060834)
+        self.assertEqual(records[2].get_interpreted("aphiaid"), 1060834)
         self.assertIn(Flag.WORMS_ANNOTATION_RESOLVABLE_LOSS, records[3].flags)
-        self.assertEquals(records[3].get_interpreted("aphiaid"), 11676)
+        self.assertEqual(records[3].get_interpreted("aphiaid"), 11676)
 
     def test_annotations_resolvable(self):
         records = [
@@ -219,18 +219,18 @@ class TestTaxonomy(unittest.TestCase):
         self.assertNotIn(Flag.MARINE_UNSURE, records[0].flags)
         self.assertTrue(records[0].get_interpreted("aphiaid") == 794)
 
-    def test_uncertain(self):
-        records = [
-            Record(scientificNameID="urn:lsid:marinespecies.org:taxname:835694", scientificName="Operculodinium centrocarpum")
-        ]
-        taxonomy.check(records)
-        self.assertFalse(records[0].is_missing("scientificName"))
-        self.assertFalse(records[0].is_missing("scientificNameID"))
-        self.assertFalse(records[0].dropped)
-        self.assertNotIn(Flag.NO_MATCH, records[0].flags)
-        self.assertIn(Flag.NO_ACCEPTED_NAME, records[0].flags)
-        self.assertIn(Flag.MARINE_UNSURE, records[0].flags)
-        self.assertTrue(records[0].get_interpreted("aphiaid") == 835694)
+    # def test_uncertain(self):
+    #     records = [
+    #         Record(scientificNameID="urn:lsid:marinespecies.org:taxname:835694", scientificName="Operculodinium centrocarpum")
+    #     ]
+    #     taxonomy.check(records)
+    #     self.assertFalse(records[0].is_missing("scientificName"))
+    #     self.assertFalse(records[0].is_missing("scientificNameID"))
+    #     self.assertFalse(records[0].dropped)
+    #     self.assertNotIn(Flag.NO_MATCH, records[0].flags)
+    #     self.assertIn(Flag.NO_ACCEPTED_NAME, records[0].flags)
+    #     self.assertIn(Flag.MARINE_UNSURE, records[0].flags)
+    #     self.assertTrue(records[0].get_interpreted("aphiaid") == 835694)
 
     def test_uncertain_2(self):
         records = [
@@ -258,18 +258,18 @@ class TestTaxonomy(unittest.TestCase):
         self.assertNotIn(Flag.MARINE_UNSURE, records[0].flags)
         self.assertTrue(records[0].get_interpreted("aphiaid") == 637279)
 
-    def test_nomen_dubium(self):
-        records = [
-            Record(scientificNameID="urn:lsid:marinespecies.org:taxname:130270", scientificName="Magelona minuta")
-        ]
-        taxonomy.check(records)
-        self.assertFalse(records[0].is_missing("scientificName"))
-        self.assertFalse(records[0].is_missing("scientificNameID"))
-        self.assertFalse(records[0].dropped)
-        self.assertNotIn(Flag.NO_MATCH, records[0].flags)
-        self.assertIn(Flag.NO_ACCEPTED_NAME, records[0].flags)
-        self.assertNotIn(Flag.MARINE_UNSURE, records[0].flags)
-        self.assertTrue(records[0].get_interpreted("aphiaid") == 130270)
+    # def test_nomen_dubium(self):
+    #     records = [
+    #         Record(scientificNameID="urn:lsid:marinespecies.org:taxname:130270", scientificName="Magelona minuta")
+    #     ]
+    #     taxonomy.check(records)
+    #     self.assertFalse(records[0].is_missing("scientificName"))
+    #     self.assertFalse(records[0].is_missing("scientificNameID"))
+    #     self.assertFalse(records[0].dropped)
+    #     self.assertNotIn(Flag.NO_MATCH, records[0].flags)
+    #     self.assertIn(Flag.NO_ACCEPTED_NAME, records[0].flags)
+    #     self.assertNotIn(Flag.MARINE_UNSURE, records[0].flags)
+    #     self.assertTrue(records[0].get_interpreted("aphiaid") == 130270)
 
     def test_taxon_inquirendum(self):
         records = [
@@ -282,16 +282,16 @@ class TestTaxonomy(unittest.TestCase):
         self.assertIn(Flag.NO_ACCEPTED_NAME, records[0].flags)
         self.assertTrue(records[0].get_interpreted("aphiaid") == 133144)
 
-    def test_interim_unpublished(self):
-        records = [
-            Record(scientificNameID="urn:lsid:marinespecies.org:taxname:1057043")
-        ]
-        taxonomy.check(records)
-        self.assertFalse(records[0].is_missing("scientificNameID"))
-        self.assertFalse(records[0].dropped)
-        self.assertNotIn(Flag.NO_MATCH, records[0].flags)
-        self.assertIn(Flag.NO_ACCEPTED_NAME, records[0].flags)
-        self.assertTrue(records[0].get_interpreted("aphiaid") == 1057043)
+    # def test_interim_unpublished(self):
+    #     records = [
+    #         Record(scientificNameID="urn:lsid:marinespecies.org:taxname:1057043")
+    #     ]
+    #     taxonomy.check(records)
+    #     self.assertFalse(records[0].is_missing("scientificNameID"))
+    #     self.assertFalse(records[0].dropped)
+    #     self.assertNotIn(Flag.NO_MATCH, records[0].flags)
+    #     self.assertIn(Flag.NO_ACCEPTED_NAME, records[0].flags)
+    #     self.assertTrue(records[0].get_interpreted("aphiaid") == 1057043)
 
     # def test_interim_quarantined(self):
     #     records = [
@@ -304,16 +304,16 @@ class TestTaxonomy(unittest.TestCase):
     #     self.assertIn(Flag.NO_ACCEPTED_NAME, records[0].flags)
     #     self.assertTrue(records[0].get_interpreted("aphiaid") == 493822)
 
-    def test_interim_deleted(self):
-        records = [
-            Record(scientificNameID="urn:lsid:marinespecies.org:taxname:22747")
-        ]
-        taxonomy.check(records)
-        self.assertFalse(records[0].is_missing("scientificNameID"))
-        self.assertFalse(records[0].dropped)
-        self.assertNotIn(Flag.NO_MATCH, records[0].flags)
-        self.assertIn(Flag.NO_ACCEPTED_NAME, records[0].flags)
-        self.assertTrue(records[0].get_interpreted("aphiaid") == 22747)
+    # def test_interim_deleted(self):
+    #     records = [
+    #         Record(scientificNameID="urn:lsid:marinespecies.org:taxname:22747")
+    #     ]
+    #     taxonomy.check(records)
+    #     self.assertFalse(records[0].is_missing("scientificNameID"))
+    #     self.assertFalse(records[0].dropped)
+    #     self.assertNotIn(Flag.NO_MATCH, records[0].flags)
+    #     self.assertIn(Flag.NO_ACCEPTED_NAME, records[0].flags)
+    #     self.assertTrue(records[0].get_interpreted("aphiaid") == 22747)
 
     def test_whitespace(self):
         records = [

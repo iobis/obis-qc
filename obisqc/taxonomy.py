@@ -1,8 +1,8 @@
 from typing import Dict, List
 from obisqc.model import Record, RANKS, RANK_IDS
-from obisqc.util.aphia import match_worms, match_obis, check_annotated_list, fetch, detect_lsid, detect_external
+from obisqc.util.aphia import match_worms, check_annotated_list, fetch, detect_lsid, detect_external
 import logging
-from obisqc.model import AphiaCacheInterface, AphiaInfo, Taxon
+from obisqc.model import AphiaInfo, Taxon
 from obisqc.util.flags import Flag
 from obisqc.util.aphia import is_accepted, convert_environment
 
@@ -19,19 +19,18 @@ def check_fields(taxa: Dict[str, AphiaInfo]) -> None:
             taxon.set_missing("scientificNameID")
 
 
-def check_taxa(taxa: Dict[str, AphiaInfo], cache: AphiaCacheInterface = None) -> None:
+def check_taxa(taxa: Dict[str, AphiaInfo]) -> None:
     """Run all steps for taxonomic quality control."""
 
     check_fields(taxa)
     detect_lsid(taxa)
     detect_external(taxa)
-    match_obis(taxa, cache)
     match_worms(taxa)
     check_annotated_list(taxa)
-    fetch(taxa, cache)
+    fetch(taxa)
 
 
-def check(records: List[Record], cache: AphiaCacheInterface = None) -> None:
+def check(records: List[Record]) -> None:
 
     # first map all input rows to sets of taxonomic information
 
@@ -51,7 +50,7 @@ def check(records: List[Record], cache: AphiaCacheInterface = None) -> None:
     # submit all sets of taxonomic information to the aphia component
 
     logger.debug("Checking %s names" % (len(taxa.keys())))
-    check_taxa(taxa, cache)
+    check_taxa(taxa)
 
     # process aphia results
 
@@ -96,11 +95,11 @@ def check(records: List[Record], cache: AphiaCacheInterface = None) -> None:
                 taxon.set_interpreted("redlist_category", master_aphia_info["redlist_category"])
 
             for rank in RANKS:
-                if rank in master_aphia_info["classification"]:
-                    taxon.set_interpreted(rank, master_aphia_info["classification"][rank])
+                if rank in master_aphia_info["record"]:
+                    taxon.set_interpreted(rank, master_aphia_info["record"][rank])
             for rank_id in RANK_IDS:
-                if rank_id in master_aphia_info["classification"]:
-                    taxon.set_interpreted(rank_id, master_aphia_info["classification"][rank_id])
+                if rank_id in master_aphia_info["record"]:
+                    taxon.set_interpreted(rank_id, master_aphia_info["record"][rank_id])
 
             # derive marine flag
 
