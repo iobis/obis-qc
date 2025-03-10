@@ -239,15 +239,10 @@ def fetch_aphia(aphiaid):
         return {"record": None}
     record = json.loads(res["record"])
 
-    # TODO: get ids into sqlite
-    bold_id = pyworms.aphiaExternalIDByAphiaID(aphiaid, "bold")
-    ncbi_id = pyworms.aphiaExternalIDByAphiaID(aphiaid, "ncbi")
-    bold_id = bold_id[0] if bold_id is not None and isinstance(bold_id, list) and len(bold_id) > 0 else None
-    ncbi_id = ncbi_id[0] if ncbi_id is not None and isinstance(ncbi_id, list) and len(ncbi_id) > 0 else None
     aphia_info = {
         "record": record,
-        "bold_id": bold_id,
-        "ncbi_id": ncbi_id
+        "bold_id": res["bold_id"],
+        "ncbi_id": res["ncbi_id"]
     }
     return aphia_info
 
