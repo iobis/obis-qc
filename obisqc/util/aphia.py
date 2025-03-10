@@ -27,7 +27,7 @@ def parse_scientificnameid(input: str) -> int:
         else:
             return None
     elif "www.marinespecies.org/aphia.php" in input:
-        m = re.search("^http[s]?:\/\/www\.marinespecies\.org\/aphia\.php\?p=taxdetails&id=([0-9]+)$", input)
+        m = re.search("^http[s]?://www\.marinespecies\.org/aphia\.php\?p=taxdetails&id=([0-9]+)$", input)
         if m:
             return int(m.group(1))
         else:
