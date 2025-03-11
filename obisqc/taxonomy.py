@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 def check_fields(taxa: Dict[str, AphiaInfo]) -> None:
     """Check if taxonomy related fields are present."""
+    logger.info("Checking taxonomy fields")
     for key, taxon in taxa.items():
         if taxon.get("scientificName") is None:
             taxon.set_missing("scientificName")

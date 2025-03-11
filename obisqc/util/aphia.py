@@ -51,6 +51,7 @@ def get_annotated_list() -> None:
 
 
 def check_annotated_list(taxa):
+    logger.info("Checking annotated list")
 
     for key, taxon in taxa.items():
         if taxon.get("scientificName") is not None and taxon.aphiaid is None:
@@ -143,6 +144,7 @@ def chunk_into_n(lst, n):
 
 
 def match_with_sqlite(names: list[str]):
+    logger.info(f"Matching names against sqlite {os.getenv('WORMS_DB_PATH')}")
 
     results = []
 
@@ -249,6 +251,7 @@ def fetch_aphia(aphiaid):
 
 def detect_lsid(taxa: Dict[str, AphiaInfo]) -> None:
     """Check if scientificNameID is present and parse LSID to Aphia ID."""
+    logger.info("Detecting LSIDs")
     for taxon in taxa.values():
         if taxon.get("scientificNameID") is not None:
             aphiaid = parse_scientificnameid(taxon.get("scientificNameID"))
@@ -260,6 +263,7 @@ def detect_lsid(taxa: Dict[str, AphiaInfo]) -> None:
 
 def detect_external(taxa: Dict[str, AphiaInfo]) -> None:
     """Check if scientificNameID is present and convert external identifier to Aphia ID."""
+    logger.info("Detecting external identifiers")
     for taxon in taxa.values():
         if taxon.get("scientificNameID") is not None and taxon.aphiaid is None:
             identifier = taxon.get("scientificNameID").strip().lower()
@@ -282,6 +286,8 @@ def detect_external(taxa: Dict[str, AphiaInfo]) -> None:
 
 def fetch(taxa):
     """Fetch Aphia info from WoRMS, including alternative."""
+
+    logger.info("Fetching taxonomy info")
 
     for key, taxon in taxa.items():
 
