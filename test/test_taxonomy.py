@@ -12,6 +12,35 @@ logging.getLogger("obisqc.util.aphia").setLevel(logging.INFO)
 
 class TestTaxonomy(unittest.TestCase):
 
+    def test_sqlite(self): 
+        records = [
+            Record(data={"scientificName": "Abra alba"}),
+            Record(data={"scientificName": "Abra alba (W. Wood 1802)"}),
+            Record(data={"scientificName": "Abra alba W. Wood 1802"}),
+            Record(data={"scientificName": "Abra (Abra) Lamarck, 1818"}),
+            Record(data={"scientificName": "Abra Lamarck, 1818"}),
+            Record(data={"scientificName": "Abra alva"}),
+            Record(data={"scientificName": "Larus dominicanus dominicanus"}),
+            Record(data={"scientificName": "Skeletonema menzellii"}),
+            Record(data={"scientificName": "Paridotea munda"}),
+            Record(data={"scientificName": "Paridotea munda Hale, 1924"}),
+            Record(data={"scientificName": "Paridotea munda Nunomura, 1988"}),
+            Record(data={"scientificName": "Ulva lactuca"})
+        ]
+        taxonomy.check(records)
+        self.assertNotIn(Flag.NO_MATCH, records[0].flags)
+        self.assertNotIn(Flag.NO_MATCH, records[1].flags)
+        self.assertIn(Flag.NO_MATCH, records[2].flags)
+        self.assertNotIn(Flag.NO_MATCH, records[3].flags)
+        self.assertNotIn(Flag.NO_MATCH, records[4].flags)
+        self.assertIn(Flag.NO_MATCH, records[5].flags)
+        self.assertIn(Flag.NO_MATCH, records[6].flags)
+        self.assertIn(Flag.NO_MATCH, records[7].flags)
+        self.assertIn(Flag.NO_MATCH, records[8].flags)
+        self.assertNotIn(Flag.NO_MATCH, records[9].flags)
+        self.assertNotIn(Flag.NO_MATCH, records[10].flags)
+        self.assertNotIn(Flag.NO_MATCH, records[11].flags)
+
     def test_parallel(self):
         records = [
             Record(data={"scientificName": "Abra1 alba"}),

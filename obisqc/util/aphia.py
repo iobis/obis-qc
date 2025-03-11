@@ -152,28 +152,54 @@ def match_with_sqlite(names: list[str]):
     con.row_factory = sqlite3.Row
     cur = con.cursor()
 
+    parsed_names = []
+
+    # get all canonical names and authorships
+
     for name in names:
         parsed_str = parse_to_string(name, "compact", None, 1, 1)
         parsed = json.loads(parsed_str)
         if parsed.get("parsed"):
             canonical = parsed.get("canonical", None).get("full", None)
             authorship = parsed.get("authorship", {}).get("normalized", None)
-            cur.execute("select * from parsed where canonical = ?", (canonical,))
-            matches = cur.fetchall()
-            all_matches = [{
-                "aphiaid": match_dict["aphiaid"],
-                "scientificname": match_dict["canonical"],
-                "authorship": match_dict["authorship"],
-            } for match_dict in [dict(match) for match in matches]]
-            if len(all_matches) > 1:
-                matches = [match for match in all_matches if match["authorship"] == authorship]
+            parsed_names.append((canonical, authorship))
+        else:
+            parsed_names.append((None, None))
+
+    # fetch all matches by canonical name
+
+    canonicals = list(set([name[0] for name in parsed_names if name[0] is not None]))
+    placeholders = ",".join("?" * len(canonicals))
+    cur.execute(f"select * from parsed where canonical in ({placeholders})", canonicals)
+    matches = cur.fetchall()
+    canonicals_map = {}
+    for row in matches:
+        canonical = row["canonical"]
+        if canonical not in canonicals_map:
+            canonicals_map[canonical] = []
+        canonicals_map[canonical].append({
+            "aphiaid": row["aphiaid"],
+            "scientificname": row["canonical"],
+            "authorship": row["authorship"],
+        })
+    con.close()
+
+    # get all matches by canonical name and authorship
+
+    for name_pair in parsed_names:
+        canonical = name_pair[0]
+        authorship = name_pair[1]
+        if canonical is not None:
+            if canonical in canonicals_map:
+                matches = canonicals_map[canonical]
+                if authorship is not None:
+                    matches = [match for match in matches if match["authorship"] == authorship]
             else:
-                matches = all_matches
+                matches = []
         else:
             matches = []
         results.append(matches)
 
-    con.close()
     return results
 
 
