@@ -146,17 +146,9 @@ def chunk_into_n(lst, n):
 def match_with_sqlite(names: list[str]):
     logger.info(f"Matching names against sqlite {os.getenv('WORMS_DB_PATH')}")
 
-    results = []
-
-    logger.info(f"Connecting to sqlite {os.getenv('WORMS_DB_PATH')}")
-    con = sqlite3.connect(os.getenv("WORMS_DB_PATH"))
-    con.row_factory = sqlite3.Row
-    cur = con.cursor()
-    logger.info(f"Connected to sqlite {os.getenv('WORMS_DB_PATH')}")
+    # get all canonical names and authorships
 
     parsed_names = []
-
-    # get all canonical names and authorships
 
     for name in names:
         parsed_str = parse_to_string(name, "compact", None, 1, 1)
@@ -168,11 +160,21 @@ def match_with_sqlite(names: list[str]):
         else:
             parsed_names.append((None, None))
 
+    logger.info(f"Parsed {len(parsed_names)} names")
+
     # fetch all matches by canonical name
+
+    logger.info(f"Connecting to sqlite {os.getenv('WORMS_DB_PATH')}")
+    con = sqlite3.connect(os.getenv("WORMS_DB_PATH"))
+    con.row_factory = sqlite3.Row
+    cur = con.cursor()
+    logger.info(f"Connected to sqlite {os.getenv('WORMS_DB_PATH')}")
 
     canonicals = list(set([name[0] for name in parsed_names if name[0] is not None]))
     placeholders = ",".join("?" * len(canonicals))
+    
     logger.info(f"Checking {len(canonicals)} canonical names")
+    
     cur.execute(f"select * from parsed where canonical in ({placeholders})", canonicals)
     matches = cur.fetchall()
     logger.info(f"Found {len(matches)} matches")
@@ -186,9 +188,12 @@ def match_with_sqlite(names: list[str]):
             "scientificname": row["canonical"],
             "authorship": row["authorship"],
         })
+
     con.close()
 
     # get all matches by canonical name and authorship
+
+    results = []
 
     for name_pair in parsed_names:
         canonical = name_pair[0]
