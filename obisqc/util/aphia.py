@@ -143,12 +143,7 @@ def chunk_into_n(lst, n):
 
 
 def match_with_sqlite(names: list[str]):
-
     import gnparser
-    logger.info(f"gnparser file: {gnparser.__file__}")
-    lib_path = os.path.join(os.path.dirname(__file__), "libgnparser.so")
-    logger.info(f"gnparser lib path: {lib_path}")
-    logger.info(f"gnparser lib path exists: {os.path.exists(lib_path)}")
 
     logger.info(f"Matching names against sqlite {os.getenv('WORMS_DB_PATH')}")
 
@@ -157,7 +152,6 @@ def match_with_sqlite(names: list[str]):
     parsed_names = []
 
     for name in names:
-        logger.info(f"Parsing {name}")        
         parsed_str = gnparser.parse_to_string(name, "compact", None, 1, 1)
         parsed = json.loads(parsed_str)
         if parsed.get("parsed"):
