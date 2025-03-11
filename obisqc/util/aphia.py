@@ -148,9 +148,11 @@ def match_with_sqlite(names: list[str]):
 
     results = []
 
+    logger.info(f"Connecting to sqlite {os.getenv('WORMS_DB_PATH')}")
     con = sqlite3.connect(os.getenv("WORMS_DB_PATH"))
     con.row_factory = sqlite3.Row
     cur = con.cursor()
+    logger.info(f"Connected to sqlite {os.getenv('WORMS_DB_PATH')}")
 
     parsed_names = []
 
