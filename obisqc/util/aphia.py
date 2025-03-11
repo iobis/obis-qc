@@ -161,24 +161,17 @@ def match_with_sqlite(names: list[str]):
         else:
             parsed_names.append((None, None))
 
-    logger.info(f"Parsed {len(parsed_names)} names")
-
     # fetch all matches by canonical name
 
-    logger.info(f"Connecting to sqlite {os.getenv('WORMS_DB_PATH')}")
     con = sqlite3.connect(os.getenv("WORMS_DB_PATH"))
     con.row_factory = sqlite3.Row
     cur = con.cursor()
-    logger.info(f"Connected to sqlite {os.getenv('WORMS_DB_PATH')}")
 
     canonicals = list(set([name[0] for name in parsed_names if name[0] is not None]))
     placeholders = ",".join("?" * len(canonicals))
     
-    logger.info(f"Checking {len(canonicals)} canonical names")
-    
     cur.execute(f"select * from parsed where canonical in ({placeholders})", canonicals)
     matches = cur.fetchall()
-    logger.info(f"Found {len(matches)} matches")
     canonicals_map = {}
     for row in matches:
         canonical = row["canonical"]
@@ -287,7 +280,6 @@ def fetch_aphia(aphiaid):
 
 def detect_lsid(taxa: Dict[str, AphiaInfo]) -> None:
     """Check if scientificNameID is present and parse LSID to Aphia ID."""
-    logger.info("Detecting LSIDs")
     for taxon in taxa.values():
         if taxon.get("scientificNameID") is not None:
             aphiaid = parse_scientificnameid(taxon.get("scientificNameID"))
@@ -299,7 +291,6 @@ def detect_lsid(taxa: Dict[str, AphiaInfo]) -> None:
 
 def detect_external(taxa: Dict[str, AphiaInfo]) -> None:
     """Check if scientificNameID is present and convert external identifier to Aphia ID."""
-    logger.info("Detecting external identifiers")
     for taxon in taxa.values():
         if taxon.get("scientificNameID") is not None and taxon.aphiaid is None:
             identifier = taxon.get("scientificNameID").strip().lower()
@@ -322,8 +313,6 @@ def detect_external(taxa: Dict[str, AphiaInfo]) -> None:
 
 def fetch(taxa):
     """Fetch Aphia info from WoRMS, including alternative."""
-
-    logger.info("Fetching taxonomy info")
 
     for key, taxon in taxa.items():
 
