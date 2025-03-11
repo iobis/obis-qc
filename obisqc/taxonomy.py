@@ -50,7 +50,7 @@ def check(records: List[Record]) -> None:
 
     # submit all sets of taxonomic information to the aphia component
 
-    logger.debug("Checking %s names" % (len(taxa.keys())))
+    logger.debug("Checking %s taxonomy field sets" % (len(taxa.keys())))
     check_taxa(taxa)
 
     # process aphia results
