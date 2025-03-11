@@ -170,8 +170,10 @@ def match_with_sqlite(names: list[str]):
 
     canonicals = list(set([name[0] for name in parsed_names if name[0] is not None]))
     placeholders = ",".join("?" * len(canonicals))
+    logger.info(f"Checking {len(canonicals)} canonical names")
     cur.execute(f"select * from parsed where canonical in ({placeholders})", canonicals)
     matches = cur.fetchall()
+    logger.info(f"Found {len(matches)} matches")
     canonicals_map = {}
     for row in matches:
         canonical = row["canonical"]
