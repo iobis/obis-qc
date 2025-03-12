@@ -239,7 +239,7 @@ def match_worms(taxa: Dict[str, AphiaInfo]):
             else:
                 valid_aphiaids = list(set([match["valid_aphiaid"] for match in name_matches]))
                 if len(valid_aphiaids) == 1:
-                    taxa[keys[i]].aphiaid = int(valid_aphiaids[0])
+                    taxa[keys[i]].aphiaid = int(valid_aphiaids[0]) if valid_aphiaids[0] is not None else None
                 else:
                     taxa[keys[i]].aphiaid = None
 
