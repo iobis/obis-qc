@@ -181,6 +181,7 @@ def match_with_sqlite(names: list[str]):
             "aphiaid": row["aphiaid"],
             "scientificname": row["canonical"],
             "authorship": row["authorship"],
+            "valid_aphiaid": row["valid_aphiaid"]
         })
 
     con.close()
@@ -236,7 +237,11 @@ def match_worms(taxa: Dict[str, AphiaInfo]):
             if name_matches is not None and len(name_matches) == 1:
                 taxa[keys[i]].aphiaid = int(name_matches[0]["aphiaid"])
             else:
-                taxa[keys[i]].aphiaid = None
+                valid_aphiaids = list(set([match["valid_aphiaid"] for match in name_matches]))
+                if len(valid_aphiaids) == 1:
+                    taxa[keys[i]].aphiaid = int(valid_aphiaids[0])
+                else:
+                    taxa[keys[i]].aphiaid = None
 
 
 def has_alternative(aphia_info: AphiaInfo):

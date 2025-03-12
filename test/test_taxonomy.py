@@ -41,6 +41,15 @@ class TestTaxonomy(unittest.TestCase):
         self.assertNotIn(Flag.NO_MATCH, records[10].flags)
         self.assertNotIn(Flag.NO_MATCH, records[11].flags)
 
+    def test_sqlite_dev(self):
+        records = [
+            Record(scientificName = "Punctum minutissimum"),
+            Record(scientificName = "Helicodiscus parallelus")
+        ]
+        taxonomy.check(records)
+        self.assertNotIn(Flag.NO_MATCH, records[0].flags)
+        self.assertNotIn(Flag.NO_MATCH, records[1].flags)
+
     def test_parallel(self):
         records = [
             Record(data={"scientificName": "Abra1 alba"}),
