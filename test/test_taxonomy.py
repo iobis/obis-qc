@@ -120,6 +120,31 @@ class TestTaxonomy(unittest.TestCase):
         self.assertFalse(records[2].is_invalid("scientificNameID"))
         self.assertFalse(records[2].is_missing("scientificNameID"))
 
+    def test_redlist(self):
+        records = [
+            Record(scientificName="Balaenoptera physalus")
+        ]
+        taxonomy.check(records)
+        self.assertTrue(records[0].get_interpreted("redlist_category") == "VU")
+
+    def test_hab(self):
+        records = [
+            Record(scientificName="Alexandrium minutum"),
+            Record(scientificName="Abra alba")
+        ]
+        taxonomy.check(records)
+        self.assertTrue(records[0].get_interpreted("hab") == True)
+        self.assertTrue(records[1].get_interpreted("hab") != True)
+
+    def test_wrims(self):
+        records = [
+            Record(scientificName="Beroe ovata"),
+            Record(scientificName="Abra alba")
+        ]
+        taxonomy.check(records)
+        self.assertTrue(records[0].get_interpreted("wrims") == True)
+        self.assertTrue(records[1].get_interpreted("wrims") != True)
+
     def test_name_synonym(self):
         records = [
             Record(scientificName="Orca gladiator")

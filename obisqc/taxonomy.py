@@ -88,12 +88,12 @@ def check(records: List[Record]) -> None:
             taxon.set_interpreted("brackish", convert_environment(master_aphia_info["record"]["isBrackish"]))
             taxon.set_interpreted("terrestrial", convert_environment(master_aphia_info["record"]["isTerrestrial"]))
 
-            if "hab" in master_aphia_info:
-                taxon.set_interpreted("hab", master_aphia_info["hab"])
-            if "wrims" in master_aphia_info:
-                taxon.set_interpreted("wrims", master_aphia_info["wrims"])
-            if "redlist_category" in master_aphia_info:
-                taxon.set_interpreted("redlist_category", master_aphia_info["redlist_category"])
+            if "hab" in master_aphia_info["record"]:
+                taxon.set_interpreted("hab", master_aphia_info["record"]["hab"])
+            if "wrims" in master_aphia_info["record"]:
+                taxon.set_interpreted("wrims", master_aphia_info["record"]["wrims"])
+            if "redlist_category" in master_aphia_info["record"]:
+                taxon.set_interpreted("redlist_category", master_aphia_info["record"]["redlist_category"])
 
             for rank in RANKS:
                 if rank in master_aphia_info["record"]:
