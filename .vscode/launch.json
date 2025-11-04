@@ -23,8 +23,10 @@
             "request": "launch",
             "program": "scripts/dev.py",
             "console": "integratedTerminal",
-            "justMyCode": true,
-            "env": {"PYTHONPATH": "${workspaceFolder}"}
+            // "justMyCode": true,
+            "cwd": "${workspaceRoot}",
+            "env": {"PYTHONPATH": "${workspaceRoot}"}
+
         },    
     ]
 }

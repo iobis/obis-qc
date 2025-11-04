@@ -8,6 +8,8 @@ from typing import List
 
 
 def check(records: List[Record], xylookup: bool = False):
+    for record in records:
+        record.trim_whitespace()
     absence.check(records)
     fields.check(records)
     time.check(records, min_year=1582)

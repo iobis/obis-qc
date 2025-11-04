@@ -89,11 +89,14 @@ class TestTime(unittest.TestCase):
 
     def test_invalid_date_format(self):
         records = [
-            Record(eventDate="12 January 1928")
+            Record(eventDate="12 January 1928"),
+            Record(eventDate="7/23/19"),
         ]
         time.check(records)
         self.assertTrue(records[0].is_invalid("eventDate"))
         self.assertFalse(records[0].dropped)
+        self.assertTrue(records[1].is_invalid("eventDate"))
+        self.assertFalse(records[1].dropped)
 
     def test_missing_date(self):
         records = [

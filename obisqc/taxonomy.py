@@ -39,7 +39,6 @@ def check(records: List[Record]) -> None:
     indexes: Dict[str, List[str]] = {}
 
     for index, record in enumerate(records):
-        record.trim_whitespace()
         taxonomy = record.get_taxonomy()
         hash = taxonomy.get_hash()
         if hash in indexes:

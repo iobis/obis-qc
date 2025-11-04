@@ -382,6 +382,8 @@ class TestTaxonomy(unittest.TestCase):
         records = [
             Record(scientificName="Illex illecebrosus", scientificNameID="urn:lsid:marinespecies.org:taxname:153087 ")
         ]
+        for record in records:
+            record.trim_whitespace()
         taxonomy.check(records)
         self.assertFalse(records[0].is_missing("scientificNameID"))
         self.assertFalse(records[0].dropped)
