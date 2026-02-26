@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: If you use this work, please cite it as below.
+title: OBIS QC
+type: software
+abstract: OBIS QC checks
+url: https://github.com/iobis/obis-qc
+license: MIT
+authors:
+  - given-names: Pieter
+    family-names: Provoost
+    orcid: "https://orcid.org/0000-0002-4236-0384"
+  - given-names: Yi-Ming
+    family-names: Gan
+  - name: Intergovernmental Oceanographic Commission of UNESCO
+    alias: IOC-UNESCO
+    website: "https://obis.org"
+date-released: 2025-07-09
