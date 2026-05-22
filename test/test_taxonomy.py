@@ -147,7 +147,8 @@ class TestTaxonomy(unittest.TestCase):
 
     def test_name_synonym(self):
         records = [
-            Record(scientificName="Orca gladiator")
+            Record(scientificName="Orca gladiator"),
+            Record(scientificName="Abra alba")
         ]
         taxonomy.check(records)
         self.assertTrue(records[0].get_interpreted("aphiaid") == 137102)

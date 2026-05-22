@@ -262,25 +262,41 @@ def convert_environment(env: int):
         return bool(env)
 
 
-def fetch_aphia(aphiaid):
-    """Fetch the Aphia record an AphiaID."""
+def row_to_aphia_info(res) -> dict:
+    if res is None:
+        return {"record": None}
+    record = json.loads(res["record"])
+    return {
+        "record": record,
+        "bold_id": res["bold_id"],
+        "ncbi_id": res["ncbi_id"],
+    }
+
+
+def fetch_aphia_batch(aphiaids) -> Dict[int, dict]:
+    """Fetch Aphia records for many AphiaIDs using batched SQLite queries."""
+
+    unique_ids = list({int(aphiaid) for aphiaid in aphiaids if aphiaid is not None})
+    if not unique_ids:
+        return {}
 
     con = sqlite3.connect(os.getenv("WORMS_DB_PATH"))
     con.row_factory = sqlite3.Row
     cur = con.cursor()
-    cur.execute("select * from parsed where aphiaid = ?", (aphiaid,))
-    res = cur.fetchone()
+    placeholders = ",".join("?" * len(unique_ids))
+    cur.execute(f"select * from parsed where aphiaid in ({placeholders})", unique_ids)
+    result = {int(res["aphiaid"]): row_to_aphia_info(res) for res in cur.fetchall()}
     con.close()
-    if res is None:
-        return {"record": None}
-    record = json.loads(res["record"])
 
-    aphia_info = {
-        "record": record,
-        "bold_id": res["bold_id"],
-        "ncbi_id": res["ncbi_id"]
-    }
-    return aphia_info
+    for aphiaid in unique_ids:
+        if aphiaid not in result:
+            result[aphiaid] = {"record": None}
+    return result
+
+
+def fetch_aphia(aphiaid):
+    """Fetch the Aphia record for a single AphiaID."""
+    return fetch_aphia_batch([aphiaid]).get(int(aphiaid), {"record": None})
 
 
 def detect_lsid(taxa: Dict[str, AphiaInfo]) -> None:
@@ -319,25 +335,37 @@ def detect_external(taxa: Dict[str, AphiaInfo]) -> None:
 def fetch(taxa):
     """Fetch Aphia info from WoRMS, including alternative."""
 
+    logger.info("Fetching Aphia info")
+
+    primary_ids = [taxon.aphiaid for taxon in taxa.values() if taxon.aphiaid is not None]
+    primary_map = fetch_aphia_batch(primary_ids)
+
+    alternative_ids = []
+    for taxon in taxa.values():
+        if taxon.aphiaid is None:
+            continue
+        aphia_info = primary_map.get(int(taxon.aphiaid), {"record": None})
+        if aphia_info["record"] is not None and has_alternative(aphia_info):
+            alternative_ids.append(int(aphia_info["record"]["valid_AphiaID"]))
+
+    accepted_map = fetch_aphia_batch(alternative_ids)
+
     for key, taxon in taxa.items():
-
-        # TODO: fetch all aphia info records including alternatives in one go
-
-        if taxon.aphiaid is not None:
-            aphia_info = fetch_aphia(taxon.aphiaid)
-            if aphia_info["record"] is None:
-                pass
-            else:
-                taxon.aphia_info = aphia_info
-                if has_alternative(aphia_info):
-
-                    # alternative provided
-
-                    aphia_info_accepted = fetch_aphia(taxon.aphia_info["record"]["valid_AphiaID"])
-                    if aphia_info_accepted["record"] is None:
-                        pass
-                    else:
-                        taxon.aphia_info_accepted = aphia_info_accepted
+        if taxon.aphiaid is None:
+            continue
+        aphia_info = primary_map.get(int(taxon.aphiaid), {"record": None})
+        if aphia_info["record"] is None:
+            pass
+        else:
+            taxon.aphia_info = aphia_info
+            if has_alternative(aphia_info):
+                aphia_info_accepted = accepted_map.get(
+                    int(aphia_info["record"]["valid_AphiaID"]), {"record": None}
+                )
+                if aphia_info_accepted["record"] is None:
+                    pass
+                else:
+                    taxon.aphia_info_accepted = aphia_info_accepted
 
 
 get_annotated_list()
