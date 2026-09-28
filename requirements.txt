@@ -3,5 +3,4 @@ git+https://github.com/iobis/pyworms.git
 git+https://github.com/iobis/pyxylookup.git
 xmltodict==0.13.0
 pytest
-sqlite3
 gnparser
