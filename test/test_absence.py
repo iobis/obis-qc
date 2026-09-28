@@ -11,7 +11,11 @@ class TestAbsence(unittest.TestCase):
             Record(occurrenceStatus="present"),
             Record(occurrenceStatus="Present"),
             Record(occurrenceStatus="absent"),
-            Record(occurrenceStatus="is present")
+            Record(occurrenceStatus="is present"),
+            Record(occurrenceStatus="detected"),
+            Record(occurrenceStatus="Detected"),
+            Record(occurrenceStatus="notDetected"),
+            Record(occurrenceStatus="notdetected"),
         ]
         absence.check(records)
         self.assertFalse(records[0].absence)
@@ -20,6 +24,10 @@ class TestAbsence(unittest.TestCase):
         self.assertTrue(records[3].absence)
         self.assertFalse(records[4].absence)
         self.assertTrue(records[4].is_invalid("occurrenceStatus"))
+        self.assertFalse(records[5].absence)
+        self.assertFalse(records[6].absence)
+        self.assertTrue(records[7].absence)
+        self.assertTrue(records[8].absence)
 
     def test_individualcount(self):
         records = [
@@ -48,11 +56,14 @@ class TestAbsence(unittest.TestCase):
 
     def test_occurrencestatus_invalid(self):
         records = [
-            Record(individualCount=0, occurrenceStatus="present")
+            Record(individualCount=0, occurrenceStatus="present"),
+            Record(individualCount=0, occurrenceStatus="detected"),
         ]
         absence.check(records)
         self.assertTrue(records[0].absence)
         self.assertTrue(records[0].is_invalid("occurrenceStatus"))
+        self.assertTrue(records[1].absence)
+        self.assertTrue(records[1].is_invalid("occurrenceStatus"))
 
 
 if __name__ == "__main__":

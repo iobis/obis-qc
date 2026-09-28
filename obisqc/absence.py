@@ -6,6 +6,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+ABSENT_VALUES = {"absent", "notdetected"}
+PRESENT_VALUES = {"present", "detected"}
+
 
 def check_record(record: Record) -> None:
     """Check is a record is an absence record."""
@@ -25,11 +28,12 @@ def check_record(record: Record) -> None:
     # occurrenceStatus
 
     if record.get("occurrenceStatus") is not None:
-        if record.get("occurrenceStatus").lower() == "absent":
+        status = record.get("occurrenceStatus").lower()
+        if status in ABSENT_VALUES:
             record.absence = True
-        elif record.get("occurrenceStatus").lower() == "present":
+        elif status in PRESENT_VALUES:
             if record.absence:
-                # individualCount is 0 but occurrenceStatus is present
+                # individualCount is 0 but occurrenceStatus indicates presence
                 record.set_invalid("occurrenceStatus")
         else:
             record.set_invalid("occurrenceStatus")

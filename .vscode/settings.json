@@ -1,4 +1,6 @@
 {
+    "python.defaultInterpreterPath": "${env:HOME}/.pyenv/versions/3.13.2/bin/python",
+    "python.terminal.activateEnvironment": false,
     "python.testing.unittestArgs": [
         "-v",
         "-s",
